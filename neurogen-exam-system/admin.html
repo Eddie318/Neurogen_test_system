@@ -441,6 +441,7 @@
                         <option value="openai">OpenAI (GPT-3.5/GPT-4)</option>
                         <option value="qwen">通义千问 (Qwen)</option>
                         <option value="zhipu">智谱AI (GLM)</option>
+                        <option value="proxy">代理服务器 (推荐)</option>
                     </select>
                 </div>
                 
@@ -467,7 +468,8 @@
                     <p style="color: #856404; margin: 0; font-size: 14px;">
                         <strong>关于CORS限制：</strong><br>
                         • OpenAI API: 支持浏览器直接调用<br>
-                        • 通义千问/智谱AI: 受CORS限制，建议通过代理服务器调用<br>
+                        • 通义千问/智谱AI: 受CORS限制，需要代理服务器<br>
+                        • 代理服务器: 通过Vercel部署，解决CORS问题（推荐）<br>
                         • 如遇到CORS错误，系统会自动使用本地评估报告
                     </p>
                 </div>
@@ -999,6 +1001,10 @@
                 case 'zhipu':
                     urlInput.value = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
                     modelInput.value = 'glm-4';
+                    break;
+                case 'proxy':
+                    urlInput.value = 'https://your-project.vercel.app/api/proxy';
+                    modelInput.value = 'qwen-turbo';
                     break;
             }
         }

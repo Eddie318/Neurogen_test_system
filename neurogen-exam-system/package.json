@@ -1,0 +1,14 @@
+{
+  "name": "neurogen-exam-system",
+  "version": "1.0.0",
+  "description": "医学考试系统 - 智能化医学知识测评平台",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static files ready'",
+    "deploy": "vercel --prod"
+  },
+  "keywords": ["exam", "medical", "ai", "education", "assessment"],
+  "author": "Neurogen Team",
+  "license": "MIT"
+}

@@ -885,8 +885,27 @@
             // 根据不同的API服务商构建不同的请求格式
             let requestBody, headers;
             
-            // 检查是否是通义千问API
-            if (apiConfig.url.includes('dashscope.aliyuncs.com')) {
+            // 检查是否是Google Gemini API
+            if (apiConfig.url.includes('googleapis.com')) {
+                // Google Gemini API格式 - 需要在URL中包含API Key
+                const urlWithKey = `${apiConfig.url}?key=${apiConfig.key}`;
+                apiConfig.url = urlWithKey;
+                
+                requestBody = {
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }],
+                    generationConfig: {
+                        maxOutputTokens: 1000,
+                        temperature: 0.7
+                    }
+                };
+                headers = {
+                    'Content-Type': 'application/json'
+                };
+            } else if (apiConfig.url.includes('dashscope.aliyuncs.com')) {
                 // 通义千问API格式
                 requestBody = {
                     model: apiConfig.model,
@@ -936,11 +955,28 @@
             }
 
             try {
-                const response = await fetch(apiConfig.url, {
+                let fetchOptions = {
                     method: 'POST',
                     headers: headers,
                     body: JSON.stringify(requestBody)
-                });
+                };
+
+                // 如果是通义千问API且URL包含vercel或其他代理服务，使用代理格式
+                if (apiConfig.url.includes('dashscope.aliyuncs.com') || 
+                    (apiConfig.url.includes('vercel.app') || apiConfig.url.includes('workers.dev'))) {
+                    // 如果是代理服务器，重新构造请求
+                    if (!apiConfig.url.includes('dashscope.aliyuncs.com')) {
+                        fetchOptions.body = JSON.stringify({
+                            apiKey: apiConfig.key,
+                            requestBody: requestBody
+                        });
+                        fetchOptions.headers = {
+                            'Content-Type': 'application/json'
+                        };
+                    }
+                }
+
+                const response = await fetch(apiConfig.url, fetchOptions);
                 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -950,7 +986,12 @@
                 const data = await response.json();
                 
                 // 根据不同API解析响应
-                if (apiConfig.url.includes('dashscope.aliyuncs.com')) {
+                if (apiConfig.url.includes('googleapis.com')) {
+                    // Google Gemini响应格式
+                    if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+                        return data.candidates[0].content.parts[0].text;
+                    }
+                } else if (apiConfig.url.includes('dashscope.aliyuncs.com')) {
                     // 通义千问响应格式
                     if (data.output && data.output.text) {
                         return data.output.text;
@@ -967,6 +1008,28 @@
                 throw new Error('API响应格式不正确');
                 
             } catch (error) {
+                // 如果是Gemini API的模型未找到错误，尝试使用其他模型
+                if (error.message.includes('NOT_FOUND') && apiConfig.url.includes('googleapis.com')) {
+                    // 尝试使用gemini-pro模型
+                    const fallbackUrl = apiConfig.url.replace('gemini-1.5-flash', 'gemini-pro');
+                    try {
+                        const fallbackResponse = await fetch(fallbackUrl, {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify(requestBody)
+                        });
+                        
+                        if (fallbackResponse.ok) {
+                            const fallbackData = await fallbackResponse.json();
+                            if (fallbackData.candidates && fallbackData.candidates[0] && fallbackData.candidates[0].content && fallbackData.candidates[0].content.parts && fallbackData.candidates[0].content.parts[0]) {
+                                return fallbackData.candidates[0].content.parts[0].text;
+                            }
+                        }
+                    } catch (fallbackError) {
+                        console.warn('备用Gemini模型也失败:', fallbackError);
+                    }
+                }
+                
                 // 如果是CORS错误，提供更友好的错误信息
                 if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
                     throw new Error('API调用受浏览器安全限制阻止，建议使用支持CORS的API服务或通过服务器代理调用');
