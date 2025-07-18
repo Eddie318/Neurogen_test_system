@@ -424,6 +424,39 @@
             </div>
 
             <div class="card">
+                <h2>💾 题库导出/导入</h2>
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="color: #007bff; margin-bottom: 15px;">📤 导出题库</h3>
+                    <p>将当前题库导出为JSON文件，可在其他设备导入使用</p>
+                    <button id="exportBtn" onclick="exportQuestionBank()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+                        📤 导出题库
+                    </button>
+                    <span id="exportStatus" style="color: #666;"></span>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="color: #28a745; margin-bottom: 15px;">📥 导入题库</h3>
+                    <p>选择之前导出的题库JSON文件进行导入</p>
+                    <input type="file" id="jsonFileInput" accept=".json" style="margin-bottom: 10px;" onchange="handleJsonUpload(event)">
+                    <br>
+                    <button id="importBtn" onclick="importQuestionBank()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+                        📥 导入题库
+                    </button>
+                    <span id="importStatus" style="color: #666;"></span>
+                </div>
+                
+                <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border: 1px solid #ffeaa7;">
+                    <h4 style="color: #856404; margin-bottom: 10px;">💡 使用说明</h4>
+                    <ul style="margin: 0; padding-left: 20px; color: #856404;">
+                        <li>导出的文件包含所有题目信息，可在任何设备导入</li>
+                        <li>导入会<strong>覆盖</strong>当前题库，请谨慎操作</li>
+                        <li>建议定期导出题库作为备份</li>
+                        <li>团队成员可以共享导出的题库文件</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
                 <h2>📋 导入历史记录</h2>
                 <div id="importHistory">
                     <p style="color: #666; text-align: center; padding: 20px;">暂无导入记录</p>
@@ -1060,6 +1093,7 @@
         function exportQuestionBank() {
             if (questionBank.length === 0) {
                 showAlert('题库为空，无法导出', 'error');
+                document.getElementById('exportStatus').textContent = '题库为空';
                 return;
             }
             
@@ -1068,10 +1102,74 @@
             
             const link = document.createElement('a');
             link.href = URL.createObjectURL(dataBlob);
-            link.download = `题库_${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `穆桥销售题库_${new Date().toISOString().split('T')[0]}.json`;
             link.click();
             
             showAlert('题库导出成功', 'success');
+            document.getElementById('exportStatus').textContent = `已导出 ${questionBank.length} 道题目`;
+        }
+
+        // 处理JSON文件上传
+        let selectedJsonFile = null;
+        
+        function handleJsonUpload(event) {
+            selectedJsonFile = event.target.files[0];
+            if (selectedJsonFile) {
+                document.getElementById('importStatus').textContent = `已选择: ${selectedJsonFile.name}`;
+            }
+        }
+
+        // 导入题库从JSON
+        function importQuestionBank() {
+            if (!selectedJsonFile) {
+                showAlert('请先选择JSON文件', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // 验证数据格式
+                    if (!Array.isArray(importedData)) {
+                        throw new Error('文件格式不正确：应为题目数组');
+                    }
+                    
+                    // 验证题目结构
+                    let validCount = 0;
+                    const validQuestions = importedData.filter(item => {
+                        if (item && item.question && item.answer && item.optionA && item.optionB) {
+                            validCount++;
+                            return true;
+                        }
+                        return false;
+                    });
+                    
+                    if (validQuestions.length === 0) {
+                        throw new Error('文件中没有有效的题目数据');
+                    }
+                    
+                    // 确认导入
+                    if (confirm(`确定要导入 ${validQuestions.length} 道题目吗？\n这将覆盖当前题库的所有内容！`)) {
+                        questionBank = validQuestions;
+                        saveQuestionBank();
+                        updateDashboard();
+                        showAlert(`题库导入成功，共导入 ${validQuestions.length} 道题目`, 'success');
+                        document.getElementById('importStatus').textContent = `导入成功：${validQuestions.length} 道题目`;
+                        
+                        // 清空文件选择
+                        document.getElementById('jsonFileInput').value = '';
+                        selectedJsonFile = null;
+                    }
+                    
+                } catch (error) {
+                    showAlert(`导入失败: ${error.message}`, 'error');
+                    document.getElementById('importStatus').textContent = '导入失败';
+                }
+            };
+            
+            reader.readAsText(selectedJsonFile);
         }
 
         // 添加导出按钮到数据概览
