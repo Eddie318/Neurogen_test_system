@@ -1002,8 +1002,8 @@
                     if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
                         return data.candidates[0].content.parts[0].text;
                     }
-                } else if (apiConfig.url.includes('dashscope.aliyuncs.com')) {
-                    // 通义千问响应格式
+                } else if (apiConfig.url.includes('dashscope.aliyuncs.com') || apiConfig.url.includes('vercel.app') || apiConfig.url.includes('workers.dev')) {
+                    // 通义千问响应格式 (包括代理服务器)
                     if (data.output && data.output.text) {
                         return data.output.text;
                     }
