@@ -431,6 +431,9 @@
                     <button id="exportBtn" onclick="exportQuestionBank()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
                         📤 导出题库
                     </button>
+                    <button onclick="syncQuestionBankToGitHub()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+                        🔄 同步到在线题库
+                    </button>
                     <span id="exportStatus" style="color: #666;"></span>
                 </div>
                 
@@ -1006,6 +1009,33 @@
         // 保存题库到本地存储
         function saveQuestionBank() {
             localStorage.setItem('questionBank', JSON.stringify(questionBank));
+        }
+
+        // 同步题库到GitHub（需要管理员权限）
+        async function syncQuestionBankToGitHub() {
+            if (questionBank.length === 0) {
+                showAlert('题库为空，无法同步', 'error');
+                return;
+            }
+            
+            // 注意：这里需要配置GitHub API访问权限
+            showAlert('题库已保存到本地，GitHub同步功能正在开发中...', 'success');
+            
+            // 提示用户手动更新GitHub
+            const suggestion = `
+                <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <h4>📋 手动同步步骤：</h4>
+                    <ol>
+                        <li>导出当前题库为JSON文件</li>
+                        <li>登录GitHub仓库</li>
+                        <li>替换questionbank.json文件</li>
+                        <li>所有销售将自动获得最新题库</li>
+                    </ol>
+                </div>
+            `;
+            
+            document.getElementById('importResults').innerHTML = suggestion;
+            document.getElementById('importResults').style.display = 'block';
         }
 
         // 从本地存储加载题库

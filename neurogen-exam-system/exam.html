@@ -349,6 +349,9 @@
     <div class="container">
         <div class="header">
             <h1>💼 穆桥销售测验系统</h1>
+            <div id="loadingStatus" style="font-size: 14px; margin-top: 10px; padding: 5px 10px; border-radius: 15px; background: rgba(255,255,255,0.2);">
+                🔄 正在加载最新题库...
+            </div>
         </div>
 
         <div class="card">
@@ -423,8 +426,15 @@
         };
 
         // 页面加载时初始化
-        window.addEventListener('load', function() {
-            loadQuestionBankFromStorage();
+        window.addEventListener('load', async function() {
+            // 优先从GitHub加载最新题库
+            const success = await loadQuestionBankFromGitHub();
+            
+            // 如果GitHub加载失败，尝试本地备份
+            if (!success) {
+                loadQuestionBankFromStorage();
+            }
+            
             loadApiConfigFromStorage();
             
             // 检查题库是否为空
@@ -435,18 +445,64 @@
             console.log('考试系统已加载，题库包含', questionBank.length, '道题目');
         });
 
-        // 从本地存储加载题库
+        // 从GitHub加载在线题库
+        async function loadQuestionBankFromGitHub() {
+            try {
+                console.log('正在从GitHub加载最新题库...');
+                const response = await fetch('https://raw.githubusercontent.com/Eddie318/Neurogen_test_system/main/questionbank.json');
+                
+                if (response.ok) {
+                    const onlineQuestionBank = await response.json();
+                    if (Array.isArray(onlineQuestionBank) && onlineQuestionBank.length > 0) {
+                        questionBank = onlineQuestionBank;
+                        // 同步到本地存储作为备份
+                        localStorage.setItem('questionBank', JSON.stringify(questionBank));
+                        console.log('✅ 成功加载在线题库:', questionBank.length, '道题目');
+                        
+                        // 显示加载状态
+                        const statusDiv = document.getElementById('loadingStatus');
+                        if (statusDiv) {
+                            statusDiv.innerHTML = `✅ 已加载最新题库 (${questionBank.length}题)`;
+                            statusDiv.style.color = '#28a745';
+                        }
+                        return true;
+                    }
+                }
+            } catch (error) {
+                console.warn('从GitHub加载题库失败，尝试加载本地备份:', error);
+            }
+            
+            // 如果在线加载失败，尝试加载本地备份
+            return loadQuestionBankFromStorage();
+        }
+
+        // 从本地存储加载题库（备份方案）
         function loadQuestionBankFromStorage() {
             const saved = localStorage.getItem('questionBank');
             if (saved) {
                 try {
                     questionBank = JSON.parse(saved);
-                    console.log('成功加载题库:', questionBank.length, '道题目');
+                    console.log('📂 加载本地备份题库:', questionBank.length, '道题目');
+                    
+                    const statusDiv = document.getElementById('loadingStatus');
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `📂 使用本地备份题库 (${questionBank.length}题)`;
+                        statusDiv.style.color = '#ffc107';
+                    }
+                    return true;
                 } catch (error) {
                     console.error('题库数据解析失败:', error);
                     questionBank = [];
                 }
             }
+            
+            // 如果没有任何题库，显示错误
+            const statusDiv = document.getElementById('loadingStatus');
+            if (statusDiv) {
+                statusDiv.innerHTML = '❌ 无法加载题库，请联系管理员';
+                statusDiv.style.color = '#dc3545';
+            }
+            return false;
         }
 
         // 从本地存储加载API配置

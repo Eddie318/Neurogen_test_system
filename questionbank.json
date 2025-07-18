@@ -1,0 +1,35 @@
+[
+  {
+    "category": "销售基础",
+    "type": "single", 
+    "question": "在与客户沟通时，最重要的是什么？",
+    "optionA": "价格优势",
+    "optionB": "产品功能",
+    "optionC": "理解客户需求",
+    "optionD": "公司实力",
+    "answer": "C",
+    "explanation": "理解客户需求是销售成功的关键，只有了解客户真正需要什么，才能提供最合适的解决方案。"
+  },
+  {
+    "category": "销售技巧",
+    "type": "single",
+    "question": "客户提出价格异议时，最佳的处理方式是？",
+    "optionA": "立即降价",
+    "optionB": "强调产品优势",
+    "optionC": "了解客户预算和价值关注点",
+    "optionD": "拒绝讨价还价",
+    "answer": "C",
+    "explanation": "了解客户的预算限制和价值关注点，有助于找到双方都满意的解决方案。"
+  },
+  {
+    "category": "客户管理",
+    "type": "single",
+    "question": "维护老客户的重要性体现在哪里？",
+    "optionA": "成本更低",
+    "optionB": "更容易成交",
+    "optionC": "可能带来转介绍",
+    "optionD": "以上都是",
+    "answer": "D",
+    "explanation": "维护老客户具有成本低、成交率高、转介绍潜力大等多重优势，是销售工作的重要组成部分。"
+  }
+]
