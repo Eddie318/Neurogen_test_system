@@ -1,7 +1,7 @@
 {
   "name": "neurogen-exam-system",
   "version": "1.0.0",
-  "description": "医学考试系统 - 智能化医学知识测评平台",
+  "description": "穆桥销售测验系统",
   "main": "index.html",
   "scripts": {
     "dev": "vercel dev",

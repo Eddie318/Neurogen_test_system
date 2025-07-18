@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>医学考试系统</title>
+    <title>穆桥销售测验系统</title>
     <style>
         * {
             margin: 0;
@@ -348,8 +348,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏥 医学考试系统</h1>
-            <p>智能化医学知识测评平台</p>
+            <h1>💼 穆桥销售测验系统</h1>
         </div>
 
         <div class="card">
@@ -393,7 +392,7 @@
             <div id="resultScreen" class="result-screen">
                 <h2>🎉 考试完成！</h2>
                 <div class="score-circle" id="scoreCircle">8/10</div>
-                <p id="scoreText">您的得分：80%</p>
+                <p id="scoreText">您的得分：80</p>
                 
                 <div class="ai-report" id="aiReport">
                     <div class="loading" id="reportLoading">
@@ -697,7 +696,7 @@
             
             // 显示分数
             document.getElementById('scoreCircle').textContent = `${currentExam.score}/${currentExam.questions.length}`;
-            document.getElementById('scoreText').textContent = `您的得分：${accuracy}%`;
+            document.getElementById('scoreText').textContent = `您的得分：${currentExam.score}`;
             
             // 生成AI报告
             generateAIReport();
