@@ -362,11 +362,11 @@
                 
                 <div class="alert">
                     <h3>💡 系统配置</h3>
-                    <p>本系统使用后台管理系统中配置的API设置。如需修改API配置，请访问后台管理系统。</p>
+                    <p class="management-hint">本系统使用后台管理系统中配置的API设置。如需修改API配置，请访问后台管理系统。</p>
                 </div>
                 
                 <button class="btn" onclick="startExam()">开始考试</button>
-                <button class="btn" onclick="openAdminPanel()" style="background: #6c757d; margin-top: 10px;">🔧 后台管理</button>
+                <button class="btn admin-link" onclick="openAdminPanel()" style="background: #6c757d; margin-top: 10px;">🔧 后台管理</button>
             </div>
 
             <!-- 考试界面 -->
@@ -405,7 +405,7 @@
                 </div>
                 
                 <button class="btn" onclick="restartExam()">重新考试</button>
-                <button class="btn" onclick="openAdminPanel()" style="background: #6c757d; margin-top: 10px;">🔧 后台管理</button>
+                <button class="btn admin-link" onclick="openAdminPanel()" style="background: #6c757d; margin-top: 10px;">🔧 后台管理</button>
             </div>
         </div>
     </div>
@@ -523,7 +523,7 @@
             // 如果没有任何题库，显示错误
             const statusDiv = document.getElementById('loadingStatus');
             if (statusDiv) {
-                statusDiv.innerHTML = '❌ 无法加载题库，请联系管理员';
+                statusDiv.innerHTML = '❌ 无法加载题库，请稍后重试';
                 statusDiv.style.color = '#dc3545';
             }
             return false;
@@ -592,7 +592,7 @@
             } else {
                 alertDiv.innerHTML = `
                     <h3>⚠️ 题库为空</h3>
-                    <p>当前没有可用的题目，请先到后台管理系统添加题目。</p>
+                    <p class="management-hint">当前没有可用的题目，请先到后台管理系统添加题目。</p>
                     <button class="btn admin-link" onclick="openAdminPanel()">
                         🔧 打开后台管理
                     </button>
@@ -628,7 +628,7 @@
             // 检查后台API配置
             const savedConfig = localStorage.getItem('apiConfig');
             if (!savedConfig) {
-                if (!confirm('未找到API配置，将无法生成AI评估报告，是否继续？建议先到后台管理系统配置API。')) {
+                if (!confirm('未找到API配置，将无法生成AI评估报告，是否继续？')) {
                     return;
                 }
             } else {
