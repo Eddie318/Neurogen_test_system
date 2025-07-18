@@ -816,12 +816,15 @@
             try {
                 const wrongAnswers = currentExam.answers ? currentExam.answers.filter(a => !a.isCorrect) : [];
                 const categories = {};
+                const detailedQuestions = [];
                 
-                // 安全地处理答案数据
+                // 安全地处理答案数据并收集完整题目信息
                 if (currentExam.answers && Array.isArray(currentExam.answers)) {
-                    currentExam.answers.forEach(answer => {
-                        if (answer && answer.question && answer.question.category) {
-                            const category = answer.question.category;
+                    currentExam.answers.forEach((answer, index) => {
+                        if (answer && answer.question) {
+                            const category = answer.question.category || '未分类';
+                            
+                            // 分类统计
                             if (!categories[category]) {
                                 categories[category] = { total: 0, correct: 0 };
                             }
@@ -829,6 +832,25 @@
                             if (answer.isCorrect) {
                                 categories[category].correct++;
                             }
+                            
+                            // 收集完整题目信息
+                            const questionDetail = {
+                                questionNumber: index + 1,
+                                category: category,
+                                type: answer.question.type === 'single' ? '单选题' : '多选题',
+                                question: answer.question.question || '题目内容缺失',
+                                options: {
+                                    A: answer.question.optionA || '',
+                                    B: answer.question.optionB || '',
+                                    C: answer.question.optionC || '',
+                                    D: answer.question.optionD || ''
+                                },
+                                correctAnswer: answer.question.answer || '',
+                                userAnswer: answer.userAnswer || '',
+                                isCorrect: answer.isCorrect,
+                                explanation: answer.question.explanation || ''
+                            };
+                            detailedQuestions.push(questionDetail);
                         }
                     });
                 }
@@ -844,14 +866,12 @@
                     duration: duration,
                     categories: categories,
                     wrongAnswers: wrongAnswers,
+                    detailedQuestions: detailedQuestions, // 新增：完整题目信息
                     examDetails: {
                         startTime: currentExam.startTime,
                         endTime: currentExam.endTime,
-                        questions: currentExam.questions ? currentExam.questions.map(q => ({
-                            category: q.category || '未分类',
-                            type: q.type || 'single',
-                            question: q.question ? q.question.substring(0, 50) + '...' : '题目内容...'
-                        })) : []
+                        totalScore: currentExam.score,
+                        maxScore: currentExam.questions ? currentExam.questions.length : 0
                     }
                 };
             } catch (error) {
@@ -1056,35 +1076,55 @@
                     `${category}：${stats.correct}/${stats.total} (${(stats.correct/stats.total*100).toFixed(1)}%)`
                 ).join('\n') : '暂无分类数据';
 
-            const wrongAnswersText = examData.wrongAnswers && examData.wrongAnswers.length > 0 ? 
-                examData.wrongAnswers.map(answer => {
-                    if (!answer || !answer.question) return '题目信息缺失';
-                    return `题目类别：${answer.question.category || '未分类'}\n题目类型：${answer.question.type === 'single' ? '单选题' : '多选题'}`;
-                }).join('\n\n') : '本次考试全部答对，表现优秀！';
+            // 生成完整的题目详情
+            const detailedQuestionsText = examData.detailedQuestions && examData.detailedQuestions.length > 0 ? 
+                examData.detailedQuestions.map((q, index) => {
+                    return `
+【题目${q.questionNumber}】- ${q.category} - ${q.type}
+题目：${q.question}
+选项：
+A. ${q.options.A}
+B. ${q.options.B}
+C. ${q.options.C}
+D. ${q.options.D}
+正确答案：${q.correctAnswer}
+学员答案：${q.userAnswer || '未作答'}
+答题结果：${q.isCorrect ? '✓ 正确' : '✗ 错误'}${q.explanation ? '\n解析：' + q.explanation : ''}
+                    `.trim();
+                }).join('\n\n') : '无题目详情';
 
             return `
-作为医学教育评估专家，请根据以下考试数据生成详细的学习评估报告：
+作为专业的医学教育评估专家，请根据以下完整的考试数据生成详细的个性化学习评估报告：
 
-考试基本信息：
-- 总题数：${examData.totalQuestions}题
-- 正确题数：${examData.correctCount}题
-- 正确率：${examData.accuracy}%
+=== 考试基本信息 ===
+- 考试总题数：${examData.totalQuestions}题
+- 答对题数：${examData.correctCount}题  
+- 答题正确率：${examData.accuracy}%
 - 考试用时：${examData.duration}分钟
+- 考试时间：${examData.examDetails.startTime ? new Date(examData.examDetails.startTime).toLocaleString() : '未记录'}
 
-各领域表现：
+=== 各知识领域表现统计 ===
 ${categoryText}
 
-错误题目分析：
-${wrongAnswersText}
+=== 完整题目作答情况 ===
+${detailedQuestionsText}
 
-请生成包含以下内容的专业评估报告：
-1. 总体表现评价
-2. 优势领域分析
-3. 薄弱环节识别
-4. 针对性学习建议
-5. 后续提升方向
+=== 报告生成要求 ===
+请基于以上完整的考试数据，生成一份专业的个性化学习评估报告，包含以下内容：
 
-要求：专业、具体、可操作，字数在400-600字之间。
+1. **总体表现评价**：基于答题正确率、用时等维度进行综合评价
+2. **优势领域分析**：识别学员表现突出的知识领域和题型
+3. **薄弱环节诊断**：详细分析错误题目，找出知识盲点和常见错误模式
+4. **个性化学习建议**：针对具体的错误题目和薄弱环节，提供精准的学习建议
+5. **复习重点规划**：制定针对性的复习计划和提升方向
+
+**报告要求**：
+- 分析要深入具体，结合实际的错题进行分析
+- 建议要可操作，包含具体的学习方法和资源
+- 语言专业但易懂，体现医学教育的专业性
+- 字数控制在600-800字之间，结构清晰
+
+请开始生成报告：
             `.trim();
         }
 
