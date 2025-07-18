@@ -424,15 +424,42 @@
             </div>
 
             <div class="card">
+                <h2>🔄 GitHub在线题库同步</h2>
+                <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #2196f3;">
+                    <h3 style="color: #1976d2; margin-bottom: 15px;">🔐 GitHub配置</h3>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">GitHub Token:</label>
+                        <input type="password" id="githubToken" placeholder="输入GitHub Personal Access Token" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 5px;">
+                        <small style="color: #666;">
+                            获取方式：GitHub → Settings → Developer settings → Personal access tokens → 生成新Token (需要repo权限)
+                        </small>
+                    </div>
+                    <button onclick="saveGitHubConfig()" style="background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                        💾 保存配置
+                    </button>
+                    <span id="githubConfigStatus" style="color: #666; margin-left: 10px;"></span>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="color: #28a745; margin-bottom: 15px;">🚀 自动同步</h3>
+                    <p>一键将题库同步到GitHub，所有销售设备将自动获得最新题库</p>
+                    <button onclick="autoSyncToGitHub()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; margin-right: 10px; font-size: 16px;">
+                        🔄 立即同步到GitHub
+                    </button>
+                    <button onclick="exportQuestionBank()" style="background: #007bff; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+                        📤 导出备份
+                    </button>
+                    <div id="syncStatus" style="margin-top: 10px; font-size: 14px;"></div>
+                </div>
+            </div>
+
+            <div class="card">
                 <h2>💾 题库导出/导入</h2>
                 <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                     <h3 style="color: #007bff; margin-bottom: 15px;">📤 导出题库</h3>
                     <p>将当前题库导出为JSON文件，可在其他设备导入使用</p>
                     <button id="exportBtn" onclick="exportQuestionBank()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
                         📤 导出题库
-                    </button>
-                    <button onclick="syncQuestionBankToGitHub()" style="background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
-                        🔄 同步到在线题库
                     </button>
                     <span id="exportStatus" style="color: #666;"></span>
                 </div>
@@ -1011,31 +1038,104 @@
             localStorage.setItem('questionBank', JSON.stringify(questionBank));
         }
 
-        // 同步题库到GitHub（需要管理员权限）
-        async function syncQuestionBankToGitHub() {
+        // 保存GitHub配置
+        function saveGitHubConfig() {
+            const token = document.getElementById('githubToken').value.trim();
+            
+            if (!token) {
+                showAlert('请输入GitHub Token', 'error');
+                return;
+            }
+            
+            // 保存到localStorage
+            localStorage.setItem('githubToken', token);
+            showAlert('GitHub配置已保存', 'success');
+            document.getElementById('githubConfigStatus').textContent = '✅ 已配置';
+            document.getElementById('githubConfigStatus').style.color = '#28a745';
+        }
+
+        // 加载GitHub配置
+        function loadGitHubConfig() {
+            const token = localStorage.getItem('githubToken');
+            if (token) {
+                document.getElementById('githubToken').value = token;
+                document.getElementById('githubConfigStatus').textContent = '✅ 已配置';
+                document.getElementById('githubConfigStatus').style.color = '#28a745';
+            }
+        }
+
+        // 自动同步到GitHub
+        async function autoSyncToGitHub() {
+            const token = localStorage.getItem('githubToken');
+            
+            if (!token) {
+                showAlert('请先配置GitHub Token', 'error');
+                return;
+            }
+            
             if (questionBank.length === 0) {
                 showAlert('题库为空，无法同步', 'error');
                 return;
             }
             
-            // 注意：这里需要配置GitHub API访问权限
-            showAlert('题库已保存到本地，GitHub同步功能正在开发中...', 'success');
+            const syncStatus = document.getElementById('syncStatus');
+            syncStatus.innerHTML = '🔄 正在同步到GitHub...';
+            syncStatus.style.color = '#007bff';
             
-            // 提示用户手动更新GitHub
-            const suggestion = `
-                <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                    <h4>📋 手动同步步骤：</h4>
-                    <ol>
-                        <li>导出当前题库为JSON文件</li>
-                        <li>登录GitHub仓库</li>
-                        <li>替换questionbank.json文件</li>
-                        <li>所有销售将自动获得最新题库</li>
-                    </ol>
-                </div>
-            `;
-            
-            document.getElementById('importResults').innerHTML = suggestion;
-            document.getElementById('importResults').style.display = 'block';
+            try {
+                // 获取当前文件的SHA（用于更新文件）
+                const currentFileResponse = await fetch('https://api.github.com/repos/Eddie318/Neurogen_test_system/contents/questionbank.json', {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                let sha = null;
+                if (currentFileResponse.ok) {
+                    const currentFile = await currentFileResponse.json();
+                    sha = currentFile.sha;
+                }
+                
+                // 准备更新的内容
+                const content = JSON.stringify(questionBank, null, 2);
+                const encodedContent = btoa(unescape(encodeURIComponent(content)));
+                
+                // 更新文件
+                const updateResponse = await fetch('https://api.github.com/repos/Eddie318/Neurogen_test_system/contents/questionbank.json', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `自动同步题库 - ${new Date().toLocaleString()} (${questionBank.length}道题)`,
+                        content: encodedContent,
+                        sha: sha
+                    })
+                });
+                
+                if (updateResponse.ok) {
+                    showAlert(`题库同步成功！共同步 ${questionBank.length} 道题目`, 'success');
+                    syncStatus.innerHTML = `✅ 同步成功 (${questionBank.length}道题) - ${new Date().toLocaleString()}`;
+                    syncStatus.style.color = '#28a745';
+                } else {
+                    const errorData = await updateResponse.json();
+                    throw new Error(`GitHub API错误: ${errorData.message}`);
+                }
+                
+            } catch (error) {
+                console.error('同步失败:', error);
+                showAlert(`同步失败: ${error.message}`, 'error');
+                syncStatus.innerHTML = `❌ 同步失败: ${error.message}`;
+                syncStatus.style.color = '#dc3545';
+            }
+        }
+
+        // 老版本的同步函数（保留作为备用）
+        async function syncQuestionBankToGitHub() {
+            showAlert('请使用上方的"立即同步到GitHub"功能', 'error');
         }
 
         // 从本地存储加载题库
@@ -1212,6 +1312,9 @@
                 exportBtn.onclick = exportQuestionBank;
                 dashboardCard.appendChild(exportBtn);
             }
+            
+            // 加载GitHub配置
+            loadGitHubConfig();
         });
     </script>
 </body>
