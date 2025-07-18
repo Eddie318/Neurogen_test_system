@@ -966,9 +966,20 @@
                     (apiConfig.url.includes('vercel.app') || apiConfig.url.includes('workers.dev'))) {
                     // 如果是代理服务器，重新构造请求
                     if (!apiConfig.url.includes('dashscope.aliyuncs.com')) {
+                        // 为代理服务器使用通义千问格式
+                        const qwenRequestBody = {
+                            model: apiConfig.model,
+                            input: {
+                                prompt: prompt
+                            },
+                            parameters: {
+                                max_tokens: 1000,
+                                temperature: 0.7
+                            }
+                        };
                         fetchOptions.body = JSON.stringify({
                             apiKey: apiConfig.key,
-                            requestBody: requestBody
+                            requestBody: qwenRequestBody
                         });
                         fetchOptions.headers = {
                             'Content-Type': 'application/json'
