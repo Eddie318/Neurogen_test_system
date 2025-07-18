@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vercel dev",
-    "build": "vercel build",
+    "build": "echo 'Serverless functions ready'",
     "deploy": "vercel --prod"
   },
   "keywords": ["api", "proxy", "cors", "qwen", "vercel"],
