@@ -1,0 +1,6 @@
+{
+  "provider": "proxy",
+  "url": "https://neurogen-qwen.vercel.app/api/proxy",
+  "model": "qwen-turbo",
+  "lastUpdated": "2024-01-01T00:00:00.000Z"
+}

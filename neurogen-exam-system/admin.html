@@ -1183,6 +1183,72 @@
             
             localStorage.setItem('apiConfig', JSON.stringify(config));
             showAlert('API配置保存成功', 'success');
+            
+            // 自动同步API配置到GitHub
+            syncApiConfigToGitHub();
+        }
+
+        // 同步API配置到GitHub
+        async function syncApiConfigToGitHub() {
+            const token = localStorage.getItem('githubToken');
+            if (!token) {
+                console.log('未配置GitHub Token，跳过API配置同步');
+                return;
+            }
+            
+            const apiConfig = JSON.parse(localStorage.getItem('apiConfig') || '{}');
+            
+            // 不同步API Key到GitHub（安全考虑）
+            const publicConfig = {
+                provider: apiConfig.provider,
+                url: apiConfig.url,
+                model: apiConfig.model,
+                lastUpdated: new Date().toISOString()
+            };
+            
+            try {
+                // 获取当前文件的SHA
+                const currentFileResponse = await fetch('https://api.github.com/repos/Eddie318/Neurogen_test_system/contents/apiconfig.json', {
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                let sha = null;
+                if (currentFileResponse.ok) {
+                    const currentFile = await currentFileResponse.json();
+                    sha = currentFile.sha;
+                }
+                
+                // 准备更新的内容
+                const content = JSON.stringify(publicConfig, null, 2);
+                const encodedContent = btoa(unescape(encodeURIComponent(content)));
+                
+                // 更新文件
+                const updateResponse = await fetch('https://api.github.com/repos/Eddie318/Neurogen_test_system/contents/apiconfig.json', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `自动同步API配置 - ${new Date().toLocaleString()}`,
+                        content: encodedContent,
+                        sha: sha
+                    })
+                });
+                
+                if (updateResponse.ok) {
+                    console.log('API配置同步到GitHub成功');
+                } else {
+                    console.error('API配置同步失败:', await updateResponse.text());
+                }
+                
+            } catch (error) {
+                console.error('API配置同步失败:', error);
+            }
         }
 
         // 加载API配置
