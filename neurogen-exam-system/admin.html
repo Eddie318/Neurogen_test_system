@@ -1198,11 +1198,12 @@
             
             const apiConfig = JSON.parse(localStorage.getItem('apiConfig') || '{}');
             
-            // 不同步API Key到GitHub（安全考虑）
-            const publicConfig = {
+            // 同步完整配置到GitHub，包括API Key
+            const fullConfig = {
                 provider: apiConfig.provider,
                 url: apiConfig.url,
                 model: apiConfig.model,
+                key: apiConfig.key,  // 包含API Key
                 lastUpdated: new Date().toISOString()
             };
             
@@ -1222,7 +1223,7 @@
                 }
                 
                 // 准备更新的内容
-                const content = JSON.stringify(publicConfig, null, 2);
+                const content = JSON.stringify(fullConfig, null, 2);
                 const encodedContent = btoa(unescape(encodeURIComponent(content)));
                 
                 // 更新文件
@@ -1242,6 +1243,7 @@
                 
                 if (updateResponse.ok) {
                     console.log('API配置同步到GitHub成功');
+                    showAlert('API配置已同步到云端，销售端将自动获取最新配置', 'success');
                 } else {
                     console.error('API配置同步失败:', await updateResponse.text());
                 }

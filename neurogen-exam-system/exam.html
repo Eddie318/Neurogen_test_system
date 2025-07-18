@@ -538,17 +538,15 @@
                 if (response.ok) {
                     const onlineConfig = await response.json();
                     
-                    // 需要从URL参数获取API Key
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const apiKey = urlParams.get('key');
-                    
-                    if (apiKey) {
-                        onlineConfig.key = apiKey;
-                    }
-                    
-                    // 保存到本地存储
+                    // 直接使用从GitHub获取的完整配置（包括API Key）
                     localStorage.setItem('apiConfig', JSON.stringify(onlineConfig));
                     console.log('✅ 成功加载在线API配置:', onlineConfig.provider);
+                    
+                    // 更新状态显示
+                    const statusDiv = document.getElementById('loadingStatus');
+                    if (statusDiv) {
+                        statusDiv.innerHTML = `✅ 已加载最新题库 (${questionBank.length}题) | API: ${onlineConfig.provider}`;
+                    }
                     return true;
                 }
             } catch (error) {
