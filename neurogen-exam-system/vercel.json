@@ -1,11 +1,13 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "**/*.html",
-      "use": "@vercel/static"
+  "functions": {
+    "api/questionbank.js": {
+      "maxDuration": 30
+    },
+    "api/apiconfig.js": {
+      "maxDuration": 30
     }
-  ],
+  },
   "routes": [
     {
       "src": "/",
@@ -18,6 +20,10 @@
     {
       "src": "/exam",
       "dest": "/exam.html"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     }
   ]
 }

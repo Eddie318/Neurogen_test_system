@@ -1,12 +1,606 @@
 // 题库API端点 - 完全自托管，国内稳定访问
 // 包含完整的54道题库，不依赖任何外部服务
 
-import questionBankData from './questionbank_data.json';
-
-const questionBank = questionBankData;
+// 内嵌题库数据，确保绝对可靠的访问
+const questionBank = [
+  {
+    "category": "疾病",
+    "type": "single",
+    "question": "按照癫痫发作类型的分类中，发作比例最高的是？",
+    "optionA": "全面性发作",
+    "optionB": "局灶性发作",
+    "optionC": "癫痫性痉挛",
+    "optionD": "反射性发作",
+    "answer": "B",
+    "explanation": ""
+  },
+  {
+    "category": "疾病",
+    "type": "multiple",
+    "question": "女性癫痫患者选择抗发作药物时需要注意哪些问题",
+    "optionA": "女性患者尤其关注药物对容貌的影响",
+    "optionB": "女性患者特殊的生理特点：月经，激素分泌等",
+    "optionC": "女性患者需面对生育问题",
+    "optionD": "女性患者肝肾代谢障碍",
+    "answer": "ABC",
+    "explanation": ""
+  },
+  {
+    "category": "疾病",
+    "type": "multiple",
+    "question": "婴幼儿及儿童癫痫患者选择抗发作药物时需要注意哪些问题",
+    "optionA": "婴幼儿肝脏和肾脏功能发育尚未完全成熟",
+    "optionB": "儿童正处于生长发育和学习的重要阶段",
+    "optionC": "儿童生长发育快，在标准体重范围内应按公斤体重计算给药量",
+    "optionD": "尤其关注药物\r\n对容貌的影响",
+    "answer": "ABC",
+    "explanation": ""
+  },
+  {
+    "category": "疾病",
+    "type": "single",
+    "question": "癫痫异常放电在发作初期就同时累及了双侧大脑半球，运动症状和发作的脑电图变化均为双侧性的是：",
+    "optionA": "局灶性发作进展为双侧强直-阵挛",
+    "optionB": "反射性发作",
+    "optionC": "局灶性发作",
+    "optionD": "全面性发作",
+    "answer": "D",
+    "explanation": ""
+  },
+  {
+    "category": "指南",
+    "type": "single",
+    "question": "根据卒中后癫痫（PSE）诊治的中国专家共识，加巴喷丁、（）、拉莫三嗪等不良反应发生率低，与抗凝药或抗血小板药物之间无显著相互作用，对血脂影响小，推荐作为PSE首选用药",
+    "optionA": "奥卡西平",
+    "optionB": "丙戊酸钠",
+    "optionC": "左乙拉西坦",
+    "optionD": "苯妥英钠",
+    "answer": "C",
+    "explanation": ""
+  },
+  {
+    "category": "指南",
+    "type": "single",
+    "question": "根据卒中后癫痫诊治的中国专家共识，最新有研究显示静脉使用（）在控制非惊厥性癫痫持续状态（NCSE）时显示出良好的安全性和有效性，推荐作为PSE患者NCSE的一线用药",
+    "optionA": "拉考沙胺",
+    "optionB": "左乙拉西坦",
+    "optionC": "唑吡坦",
+    "optionD": "苯巴比妥",
+    "answer": "A",
+    "explanation": ""
+  },
+  {
+    "category": "指南",
+    "type": "single",
+    "question": "（）治疗是最重要、最基本的治疗，也是大部分癫痫患者的首选治疗方式。",
+    "optionA": "抗癫痫发作药",
+    "optionB": "外科治疗",
+    "optionC": "生酮饮食",
+    "optionD": "物理治疗",
+    "answer": "A",
+    "explanation": ""
+  },
+  {
+    "category": "指南",
+    "type": "single",
+    "question": "抗癫痫发作药物不良反应管理指南 （2023）提出：4项队列研究结果表明拉莫三嗪和（） 是 目 前 认 为 妊 娠 期 服 用 较 为 安 全 的ASM（证据级别Ⅲ级）",
+    "optionA": "奥卡西平",
+    "optionB": "拉莫三嗪",
+    "optionC": "左乙拉西坦",
+    "optionD": "拉考沙胺",
+    "answer": "C",
+    "explanation": ""
+  },
+  {
+    "category": "指南",
+    "type": "single",
+    "question": "2022版癫痫伴抑郁诊断治疗的中国专家共识明确说明：哪种抗癫痫药对抑郁有正性作用",
+    "optionA": "拉考沙胺",
+    "optionB": "巴比妥类",
+    "optionC": "托吡酯",
+    "optionD": "左乙拉西坦",
+    "answer": "A",
+    "explanation": ""
+  },
+  {
+    "category": "指南",
+    "type": "multiple",
+    "question": "中国老年癫痫患者管理专家共识推荐：对合并有严重心脑血管基础病的老年癫痫患者,慎重使用钠通道阻滞剂和丙戊酸,可考虑选择(Ⅱ级证据,B级推荐)",
+    "optionA": "托吡酯",
+    "optionB": "拉莫三嗪",
+    "optionC": "左乙拉西坦",
+    "optionD": "拉考沙胺",
+    "answer": "ACD",
+    "explanation": ""
+  },
+  {
+    "category": "指南",
+    "type": "single",
+    "question": "强直-阵挛性癫痫持续（）分钟即为癫痫持续状态",
+    "optionA": "3分钟",
+    "optionB": "5分钟",
+    "optionC": "10分钟",
+    "optionD": "30分钟",
+    "answer": "B",
+    "explanation": ""
+  },
+  {
+    "category": "指南",
+    "type": "multiple",
+    "question": "根据2023版临床诊疗指南癫痫分册，以下属于惊厥性癫痫持续状态的二线治疗药物有",
+    "optionA": "咪达唑仑",
+    "optionB": "地西泮",
+    "optionC": "丙戊酸",
+    "optionD": "左乙拉西坦",
+    "answer": "CD",
+    "explanation": ""
+  },
+  {
+    "category": "指南",
+    "type": "multiple",
+    "question": "按照2023版临床诊疗指南癫痫病分册，左乙拉西坦是（）发作类型的一线药物和添加药物？",
+    "optionA": "全面性强直-阵挛发作",
+    "optionB": "强直或失张力发作",
+    "optionC": "肌阵挛发作",
+    "optionD": "局灶性发作",
+    "answer": "ACD",
+    "explanation": ""
+  },
+  {
+    "category": "ASM",
+    "type": "multiple",
+    "question": "奥卡西平严重的不良反应包括",
+    "optionA": "皮疹",
+    "optionB": "Stevens-Johnson 综合征",
+    "optionC": "携带HLA-B*1502等位基因患者皮肤反应风险增加",
+    "optionD": "肾脏疾病",
+    "answer": "ABCD",
+    "explanation": ""
+  },
+  {
+    "category": "ASM",
+    "type": "single",
+    "question": "伴发肝功能损害的癫痫患者首选抗痫药物是：",
+    "optionA": "丙戊酸钠",
+    "optionB": "奥卡西平",
+    "optionC": "开浦兰",
+    "optionD": "拉莫三嗪",
+    "answer": "C",
+    "explanation": ""
+  },
+  {
+    "category": "ASM",
+    "type": "multiple",
+    "question": "联合用药时要注意药物间相互作用，下面哪种药不是肝酶诱导剂：",
+    "optionA": "OXC",
+    "optionB": "CBZ",
+    "optionC": "LEV",
+    "optionD": "LCM",
+    "answer": "CD",
+    "explanation": ""
+  },
+  {
+    "category": "ASM",
+    "type": "multiple",
+    "question": "奥卡西平可能会加重以下哪些类型的全面性发作加重",
+    "optionA": "全面强直阵挛",
+    "optionB": "强直或失张力",
+    "optionC": "失神发作",
+    "optionD": "肌阵挛发作",
+    "answer": "ABCD",
+    "explanation": ""
+  },
+  {
+    "category": "ASM",
+    "type": "multiple",
+    "question": "奥卡西平可能会与以下哪些老年患者常用药物产生相互作用",
+    "optionA": "雌二醇",
+    "optionB": "乙炔雌二醇",
+    "optionC": "舍曲林",
+    "optionD": "辛伐他汀",
+    "answer": "ABCD",
+    "explanation": ""
+  },
+  {
+    "category": "ASM",
+    "type": "single",
+    "question": "大规模研究显示左乙拉西坦的先天畸形发生低，丙戊酸先天畸形发生率高达（）%​",
+    "optionA": "0.028",
+    "optionB": "0.037",
+    "optionC": "0.056",
+    "optionD": "0.103",
+    "answer": "D",
+    "explanation": ""
+  },
+  {
+    "category": "ASM",
+    "type": "multiple",
+    "question": "丙戊酸可能会与以下哪些老年患者常用药物产生相互作用",
+    "optionA": "阿司匹林",
+    "optionB": "华法林",
+    "optionC": "利培酮",
+    "optionD": "西酞普兰",
+    "answer": "ABCD",
+    "explanation": ""
+  },
+  {
+    "category": "ASM",
+    "type": "multiple",
+    "question": "以下哪些属于第三代ASMs",
+    "optionA": "乙琥胺",
+    "optionB": "唑尼沙胺",
+    "optionC": "拉考沙胺",
+    "optionD": "吡仑帕奈",
+    "answer": "CD",
+    "explanation": ""
+  },
+  {
+    "category": "ASM",
+    "type": "multiple",
+    "question": "服用AEDs，尤其具有酶诱导作用的AEDs女性患者应该：",
+    "optionA": "补充Vit D和钙剂",
+    "optionB": "增加日光浴",
+    "optionC": "戒烟",
+    "optionD": "限制咖啡摄入",
+    "answer": "ABCD",
+    "explanation": ""
+  },
+  {
+    "category": "开浦兰",
+    "type": "single",
+    "question": "左乙拉西坦适合老年患者使用，因为如下特点",
+    "optionA": "疗效确切，安全性好",
+    "optionB": "良好的药代动力学特点，没有临床意义的相互作用",
+    "optionC": "能改善认知和生活质量",
+    "optionD": "以上都是",
+    "answer": "D",
+    "explanation": ""
+  },
+  {
+    "category": "开浦兰",
+    "type": "single",
+    "question": "使用左乙拉西坦的女性患者哺乳，其药物乳汁/血浆比例",
+    "optionA": "高于安全阈值",
+    "optionB": "在安全阈值之内",
+    "optionC": "尚不明确",
+    "optionD": "与患者年龄相关",
+    "answer": "B",
+    "explanation": ""
+  },
+  {
+    "category": "开浦兰",
+    "type": "single",
+    "question": "左乙拉西坦适合女性癫痫患者使用，因为如下特点：",
+    "optionA": "对于青春期性激素等影响小",
+    "optionB": "妊娠妇女胎儿致畸风险低",
+    "optionC": "对于体重、骨代谢几乎不影响、长期使用能改善女性生活质量",
+    "optionD": "以上都是",
+    "answer": "D",
+    "explanation": ""
+  },
+  {
+    "category": "开浦兰",
+    "type": "single",
+    "question": "左乙拉西坦血药浓度达峰时间为？",
+    "optionA": "0.6-1.3h",
+    "optionB": "1.3-2.3h",
+    "optionC": "1.7-2.3h",
+    "optionD": "3h",
+    "answer": "A",
+    "explanation": ""
+  },
+  {
+    "category": "开浦兰",
+    "type": "multiple",
+    "question": "开浦兰针剂与口服给药如何转换？",
+    "optionA": "可以直接转换",
+    "optionB": "无需逐步增加或减少药物剂量",
+    "optionC": "每日总剂量和给药次数维持不变",
+    "optionD": "需逐步增加或减少药物剂量",
+    "answer": "ABC",
+    "explanation": ""
+  },
+  {
+    "category": "开浦兰",
+    "type": "multiple",
+    "question": "开浦兰针剂稀释液有",
+    "optionA": "0.9%氯化钠注射液",
+    "optionB": "5%葡萄糖注射液",
+    "optionC": "乳酸林格氏注射液",
+    "optionD": "10%葡萄糖注射液",
+    "answer": "ABC",
+    "explanation": ""
+  },
+  {
+    "category": "开浦兰",
+    "type": "multiple",
+    "question": "开浦兰针剂在成人及50kg以上儿童患者使用时，起始剂量，最大剂量",
+    "optionA": "500mg bid",
+    "optionB": "1000mg bid",
+    "optionC": "1500mg bid",
+    "optionD": "2000mg bid",
+    "answer": "AC",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "single",
+    "question": "我国一项研究表明：患者初始或转换为LCM单药治疗局灶性癫痫、全面性癫痫，在随访12个月后有（）的癫痫儿童患者达到癫痫无发作。​",
+    "optionA": "0.221",
+    "optionB": "0.322",
+    "optionC": "0.465",
+    "optionD": "0.506",
+    "answer": "C",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "single",
+    "question": "研究表明：4-17岁儿童维派特联用任意ASM（）周，严重TEAEs发生率及停药率均与安慰剂相当",
+    "optionA": "4",
+    "optionB": "6",
+    "optionC": "10",
+    "optionD": "12",
+    "answer": "C",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "single",
+    "question": "部分性发作添加治疗时，基于疗效和耐受性，维派特可（  ）增加剂量50mg，一天2次，直至增至最高剂量（  ）mg/d：",
+    "optionA": "一周，200",
+    "optionB": "两周，200",
+    "optionC": "一周，400",
+    "optionD": "两周，600",
+    "answer": "C",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "single",
+    "question": "维派特成人单药治疗时，初始剂量为（）mg,bid；最高剂量每日（）mg",
+    "optionA": "50100",
+    "optionB": "50200",
+    "optionC": "100200",
+    "optionD": "100400",
+    "answer": "D",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "single",
+    "question": "维派特≥11kg，<30kg的儿童起始剂量为：",
+    "optionA": "1mg/kg，一日两次",
+    "optionB": "5mg/kg，一日两次",
+    "optionC": "10mg/kg，一日两次",
+    "optionD": "15mg/kg，一日两次",
+    "answer": "A",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "single",
+    "question": "对于维派特，以下描述错误的是：",
+    "optionA": "维派特给药剂量的95%通过尿液排泄",
+    "optionB": "轻至中度肝功能受损患者的最高推荐剂量为300mg/日",
+    "optionC": "轻中度肝功能受损的患者无需调整维派特的剂量",
+    "optionD": "未在重度肝功能受损患者中评价拉考沙胺的药代动力学",
+    "answer": "C",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "multiple",
+    "question": "老年患者使用维派特，描述正确的是：",
+    "optionA": "研究表明，65岁老年患者与<65岁患者相比，不良反应发生情况相当。",
+    "optionB": "老年患者(＞65岁)一般不需要减量",
+    "optionC": "心脏疾病合并老年患者，治疗需谨慎",
+    "optionD": "老年患者应考虑年龄相关的肾脏清除率下降",
+    "answer": "ABCD",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "single",
+    "question": "目前中国申请的维派特口服溶液包装规格为：",
+    "optionA": "50ml:1g",
+    "optionB": "100ml:2g",
+    "optionC": "200ml:2g",
+    "optionD": "400ml:2g",
+    "answer": "C",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "single",
+    "question": "维派特两种剂型可等剂量等频率转换，临床使用更简单，50mg片剂=（）ml口服液",
+    "optionA": "1",
+    "optionB": "5",
+    "optionC": "10",
+    "optionD": "50",
+    "answer": "B",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "multiple",
+    "question": "目前中国申请的维派特片剂包装规格为：",
+    "optionA": "50mg， 14片",
+    "optionB": "100mg，14片",
+    "optionC": "100mg，28片",
+    "optionD": "100mg，56片",
+    "answer": "ABD",
+    "explanation": ""
+  },
+  {
+    "category": "ASM",
+    "type": "multiple",
+    "question": "钠离子通道三种生理状态，包括：",
+    "optionA": "失活",
+    "optionB": "关闭",
+    "optionC": "开放",
+    "optionD": "慢失活",
+    "answer": "ABC",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "single",
+    "question": "中日注册研究中200mg/d剂量时，维派特皮疹发生率：",
+    "optionA": "0.027",
+    "optionB": "0.017",
+    "optionC": "0",
+    "optionD": "0.015",
+    "answer": "C",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "single",
+    "question": "中日注册研究中400mg/d剂量时，维派特皮疹发生率：",
+    "optionA": "2.70%",
+    "optionB": "1.70%",
+    "optionC": "0",
+    "optionD": "1.50%",
+    "answer": "B",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "multiple",
+    "question": "华西医院牵头的一项真实世界研究表明：LCM作为添加药物，在第五次随访时（）评分和（）评分显著下降",
+    "optionA": "焦虑",
+    "optionB": "躁狂",
+    "optionC": "痴呆",
+    "optionD": "抑郁",
+    "answer": "AD",
+    "explanation": ""
+  },
+  {
+    "category": "维派特",
+    "type": "single",
+    "question": "德国一项纳入333参考文献的临床综述表明：相比其他ASM，拉考沙胺对睡眠、行为、精神无负面影响，对（）有改善作用",
+    "optionA": "意识水平",
+    "optionB": "智力",
+    "optionC": "执行力",
+    "optionD": "认知",
+    "answer": "D",
+    "explanation": ""
+  },
+  {
+    "category": "疾病",
+    "type": "single",
+    "question": "按照Hoehn‐Yahr分级， （）级定义为早期帕金森",
+    "optionA": "0-1.0",
+    "optionB": "0-2.0",
+    "optionC": "1.0-2.5",
+    "optionD": "1.0-3.0",
+    "answer": "C",
+    "explanation": ""
+  },
+  {
+    "category": "疾病",
+    "type": "multiple",
+    "question": "按照Hoehn‐Yahr分级， （）级定义为双侧肢体受累",
+    "optionA": "0",
+    "optionB": "1.0",
+    "optionC": "2.0",
+    "optionD": "3.0",
+    "answer": "CD",
+    "explanation": ""
+  },
+  {
+    "category": "指南",
+    "type": "single",
+    "question": "2020《中国帕金森病治疗指南(第四版)》建议帕金森（）诊断，（）治疗",
+    "optionA": "早，早期",
+    "optionB": "早，延迟治疗",
+    "optionC": "早，1.5年后治疗",
+    "optionD": "晚，早期",
+    "answer": "A",
+    "explanation": ""
+  },
+  {
+    "category": "指南",
+    "type": "multiple",
+    "question": "2020《中国帕金森病治疗指南(第四版)》提出帕金森的药物治疗目标为：",
+    "optionA": "改善症状",
+    "optionB": "避免/降低不良反应",
+    "optionC": "提高生活质量",
+    "optionD": "提高工作能力",
+    "answer": "ABCD",
+    "explanation": ""
+  },
+  {
+    "category": "优普洛",
+    "type": "multiple",
+    "question": "优普洛贴片的结构包括",
+    "optionA": "背衬层",
+    "optionB": "自粘合基质层",
+    "optionC": "保护层",
+    "optionD": "贴膜层",
+    "answer": "ABC",
+    "explanation": ""
+  },
+  {
+    "category": "优普洛",
+    "type": "single",
+    "question": "优普洛贴片的厚度为：",
+    "optionA": "30 µm",
+    "optionB": "50 µm",
+    "optionC": "80 µm",
+    "optionD": "100 µm",
+    "answer": "B",
+    "explanation": ""
+  },
+  {
+    "category": "优普洛",
+    "type": "multiple",
+    "question": "关于优普洛，以下说法正确的是：",
+    "optionA": "24小时药效持续稳定",
+    "optionB": "不通过胃肠道吸收",
+    "optionC": "可显著改善PD患者运动症状",
+    "optionD": "安全性和耐受性良好",
+    "answer": "ABCD",
+    "explanation": ""
+  },
+  {
+    "category": "优普洛",
+    "type": "single",
+    "question": "协和医院张振馨教授牵头的，针对中国早期人群的RCT研究中演示：优普洛第（）周开始改善症状，第（）周达到最大疗效",
+    "optionA": "2，3",
+    "optionB": "3，3",
+    "optionC": "3，5",
+    "optionD": "3，7",
+    "answer": "D",
+    "explanation": ""
+  },
+  {
+    "category": "优普洛",
+    "type": "single",
+    "question": "优普洛的适应症为：适用于早期特发性帕金森病症状及体征的单药治疗，或与（）联合用于病程中的各个阶段",
+    "optionA": "普拉克索",
+    "optionB": "司来吉兰",
+    "optionC": "左旋多巴",
+    "optionD": "苯海索",
+    "answer": "C",
+    "explanation": ""
+  },
+  {
+    "category": "优普洛",
+    "type": "single",
+    "question": "提前6个月使用优普洛治疗，可使患者回到基线时间延长（）年​",
+    "optionA": "半年",
+    "optionB": "1年",
+    "optionC": "2年",
+    "optionD": "3年",
+    "answer": "C",
+    "explanation": ""
+  }
+];
 
 export default async function handler(req, res) {
-  // 设置CORS头
+  // 设置CORS头部允许跨域访问
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -17,15 +611,23 @@ export default async function handler(req, res) {
     return;
   }
 
+  // 只响应GET请求
   if (req.method === 'GET') {
     try {
-      // 返回题库数据
+      // 返回JSON格式的题库数据
       res.status(200).json(questionBank);
     } catch (error) {
       console.error('题库API错误:', error);
-      res.status(500).json({ error: '服务器内部错误' });
+      res.status(500).json({ 
+        error: '服务器内部错误',
+        message: '无法获取题库数据'
+      });
     }
   } else {
-    res.status(405).json({ error: '不支持的请求方法' });
+    // 错误处理 - 不支持的请求方法
+    res.status(405).json({ 
+      error: '不支持的请求方法',
+      message: '仅支持GET请求'
+    });
   }
 }
