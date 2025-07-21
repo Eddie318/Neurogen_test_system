@@ -469,11 +469,11 @@
             console.log('考试系统已加载，题库包含', questionBank.length, '道题目');
         });
 
-        // 从GitHub加载在线题库
+        // 从API端点加载题库
         async function loadQuestionBankFromGitHub() {
             try {
-                console.log('正在从CDN加载最新题库...');
-                const response = await fetch('https://cdn.jsdelivr.net/gh/Eddie318/Neurogen_test_system@main/questionbank.json');
+                console.log('正在从API端点加载最新题库...');
+                const response = await fetch('/api/questionbank');
                 
                 if (response.ok) {
                     const onlineQuestionBank = await response.json();
@@ -529,11 +529,11 @@
             return false;
         }
 
-        // 从GitHub加载API配置
+        // 从API端点加载配置
         async function loadApiConfigFromGitHub() {
             try {
-                console.log('正在从CDN加载API配置...');
-                const response = await fetch('https://cdn.jsdelivr.net/gh/Eddie318/Neurogen_test_system@main/apiconfig.json');
+                console.log('正在从API端点加载配置...');
+                const response = await fetch('/api/apiconfig');
                 
                 if (response.ok) {
                     const onlineConfig = await response.json();
