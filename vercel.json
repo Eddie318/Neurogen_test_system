@@ -1,11 +1,7 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "*.html",
-      "use": "@vercel/static"
-    }
-  ],
+  "buildCommand": "echo 'Static files ready'",
+  "outputDirectory": ".",
   "functions": {
     "api/questionbank.js": {
       "maxDuration": 30
@@ -14,18 +10,14 @@
       "maxDuration": 30
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/",
-      "dest": "/index.html"
+      "source": "/admin",
+      "destination": "/admin.html"
     },
     {
-      "src": "/admin",
-      "dest": "/admin.html"
-    },
-    {
-      "src": "/exam",
-      "dest": "/exam.html"
+      "source": "/exam",
+      "destination": "/exam.html"
     }
   ]
 }
