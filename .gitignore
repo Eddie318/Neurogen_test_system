@@ -1,0 +1,15 @@
+# 忽略Claude相关文件
+.claude/
+*.log
+.DS_Store
+Thumbs.db
+
+# 忽略调试工具
+*debug*.html
+*test*.html
+*proxy*.js
+
+# 忽略临时文件
+*.tmp
+*.bak
+*.backup
