@@ -14,7 +14,9 @@
       "Bash(curl:*)",
       "Bash(cp:*)",
       "Bash(node:*)",
-      "WebFetch(domain:neurogen-exam-system.vercel.app)"
+      "WebFetch(domain:neurogen-exam-system.vercel.app)",
+      "Bash(gh repo view:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }
