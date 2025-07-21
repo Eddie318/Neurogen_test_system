@@ -16,7 +16,10 @@
       "Bash(node:*)",
       "WebFetch(domain:neurogen-exam-system.vercel.app)",
       "Bash(gh repo view:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "WebFetch(domain:api-docs.deepseek.com)"
     ],
     "deny": []
   }

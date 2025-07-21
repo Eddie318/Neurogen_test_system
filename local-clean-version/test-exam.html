@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考试测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .question {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .option {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .option:hover {
+            background: #f0f0f0;
+        }
+        .option.selected {
+            background: #e6f3ff;
+            border-color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <h1>考试测试页面</h1>
+    <div id="questionContainer"></div>
+    <button onclick="loadQuestions()">加载题库</button>
+    <button onclick="testQuestion()">测试显示题目</button>
+
+    <script>
+        let questionBank = [];
+
+        // 加载题库
+        function loadQuestions() {
+            const saved = localStorage.getItem('questionBank');
+            if (saved) {
+                questionBank = JSON.parse(saved);
+                console.log('加载题库:', questionBank.length, '道题');
+                alert(`成功加载 ${questionBank.length} 道题`);
+            } else {
+                alert('未找到题库，请先在后台管理中导入题库');
+            }
+        }
+
+        // 测试显示题目
+        function testQuestion() {
+            if (questionBank.length === 0) {
+                alert('请先加载题库');
+                return;
+            }
+
+            const question = questionBank[0]; // 测试第一道题
+            console.log('测试题目:', question);
+
+            let html = `
+                <div class="question">
+                    <h3>${question.question}</h3>
+                    <p><strong>分类:</strong> ${question.category} | <strong>类型:</strong> ${question.type}</p>
+            `;
+
+            // 显示所有选项
+            ['A', 'B', 'C', 'D'].forEach(option => {
+                const optionKey = `option${option}`;
+                const optionText = question[optionKey];
+                console.log(`选项${option}:`, optionText);
+                
+                if (optionText && optionText.trim()) {
+                    html += `
+                        <div class="option" onclick="selectOption('${option}')">
+                            ${option}. ${optionText}
+                        </div>
+                    `;
+                }
+            });
+
+            html += `
+                    <p><strong>正确答案:</strong> ${question.answer}</p>
+                </div>
+            `;
+
+            document.getElementById('questionContainer').innerHTML = html;
+        }
+
+        function selectOption(option) {
+            // 清除其他选择
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            // 选中当前选项
+            event.target.classList.add('selected');
+            console.log('选择了选项:', option);
+        }
+
+        // 页面加载时自动尝试加载题库
+        document.addEventListener('DOMContentLoaded', function() {
+            loadQuestions();
+            if (questionBank.length > 0) {
+                testQuestion();
+            }
+        });
+    </script>
+</body>
+</html>
