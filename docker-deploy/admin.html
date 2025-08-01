@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>穆桥销售测验系统 - 后台管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .question-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .question-item {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>穆桥销售测验系统 - 后台管理</h1>
+            <p>题库管理 | 数据统计 | 系统设置</p>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalQuestions">0</div>
+                <div>题目总数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="totalExams">0</div>
+                <div>考试次数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="averageScore">0</div>
+                <div>平均分数</div>
+            </div>
+        </div>
+
+        <!-- 功能选项卡 -->
+        <div class="card">
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('questions')">题库查看</div>
+                <div class="tab" onclick="showTab('records')">考试记录</div>
+                <div class="tab" onclick="showTab('settings')">系统设置</div>
+            </div>
+
+            <!-- 题库查看 -->
+            <div id="questionsTab" class="tab-content">
+                <div style="margin-bottom: 20px; padding: 10px; background: #fff3cd; border-radius: 5px; color: #856404;">
+                    📖 题库内容只能线下维护，此处仅供查看
+                </div>
+
+
+                <!-- 题目列表 -->
+                <div class="question-list" id="questionsList">
+                    <!-- 题目列表将在这里显示 -->
+                </div>
+            </div>
+
+            <!-- 考试记录 -->
+            <div id="recordsTab" class="tab-content hidden">
+                <h3>考试记录管理</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-secondary" onclick="refreshRecords()">刷新记录</button>
+                    <button class="btn btn-success" onclick="exportAllRecords()">导出记录</button>
+                    <button class="btn" style="background: #17a2b8; color: white;" onclick="showStorageUsage()">存储使用情况</button>
+                    <button class="btn" style="background: #ffc107; color: #212529;" onclick="autoCleanOldRecords()">清理旧记录</button>
+                    <button class="btn btn-danger" onclick="clearAllRecords()">清空所有记录</button>
+                </div>
+
+                <!-- 统计信息 -->
+                <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <h4>统计信息</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; font-weight: bold; color: #007bff;" id="totalRecords">0</div>
+                            <div style="color: #666;">总考试次数</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; font-weight: bold; color: #28a745;" id="averageScore">0</div>
+                            <div style="color: #666;">平均分数</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; font-weight: bold; color: #17a2b8;" id="passRate">0%</div>
+                            <div style="color: #666;">及格率 (≥60分)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 筛选和搜索 -->
+                <div style="margin-bottom: 20px; padding: 15px; background: #fff; border: 1px solid #ddd; border-radius: 8px;">
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <div>
+                            <label>姓名搜索：</label>
+                            <input type="text" id="nameFilter" placeholder="输入姓名" style="padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label>分数范围：</label>
+                            <select id="scoreFilter" style="padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px;">
+                                <option value="all">全部</option>
+                                <option value="excellent">优秀 (≥90分)</option>
+                                <option value="good">良好 (80-89分)</option>
+                                <option value="pass">及格 (60-79分)</option>
+                                <option value="fail">不及格 (<60分)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>时间排序：</label>
+                            <select id="timeSort" style="padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px;">
+                                <option value="desc">最新在前</option>
+                                <option value="asc">最早在前</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="filterRecords()">筛选</button>
+                    </div>
+                </div>
+
+                <!-- 考试记录表格 -->
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                        <thead style="background: #007bff; color: white;">
+                            <tr>
+                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">序号</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">考试时间</th>
+                                <th style="padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6;">姓名</th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;">分数</th>
+                                <th style="padding: 12px; text-align: center; border-bottom: 1px solid #dee2e6;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTableBody">
+                            <!-- 记录将通过JavaScript动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 暂无记录提示 -->
+                <div id="noRecordsMessage" style="text-align: center; padding: 40px; color: #666; display: none;">
+                    <div style="font-size: 48px; margin-bottom: 15px;">📊</div>
+                    <h4>暂无考试记录</h4>
+                    <p>当用户完成考试后，记录将显示在这里</p>
+                </div>
+            </div>
+
+
+            <!-- 系统设置 -->
+            <div id="settingsTab" class="tab-content hidden">
+                <h3>系统配置</h3>
+                
+                <div style="margin-bottom: 20px; padding: 10px; background: #d4edda; border-radius: 5px; color: #155724;">
+                    📖 配置文件：<code>data/master-config.json</code> (仅供查看)
+                </div>
+                
+                <div class="form-group">
+                    <label>当前API配置</label>
+                    <textarea id="apiConfig" class="form-control" rows="8" placeholder="加载中..." readonly></textarea>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <button class="btn btn-primary" onclick="testApiConfig()">测试API连接</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 题库数据存储
+        let questionBank = [];
+        let examRecords = [];
+        let useApiMode = false; // Docker部署模式使用API
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('=== 穆桥销售测验系统管理端启动 ===');
+            
+            // 检查是否使用API模式
+            const urlParams = new URLSearchParams(window.location.search);
+            useApiMode = urlParams.get('api') === 'true' || window.location.hostname !== 'localhost'; // Docker环境自动使用API
+            console.log('🔒 只读模式：题库和API配置只能线下维护');
+            
+            try {
+                // 1. 加载集中化配置
+                await loadMasterConfig();
+                
+                // 2. 加载集中化题库
+                await loadMasterQuestionBank();
+                
+                // 3. 加载考试记录
+                await loadExamRecords();
+                
+                // 4. 更新界面显示
+                updateStats();
+                displayQuestions();
+                updateSalesLink();
+                
+                // 5. 禁用编辑功能
+                disableEditFeatures();
+                
+                console.log('=== 管理端初始化完成（只读模式）===');
+            } catch (error) {
+                console.error('管理端初始化失败:', error);
+            }
+        });
+
+        // 加载集中化配置
+        async function loadMasterConfig() {
+            try {
+                let response;
+                if (useApiMode) {
+                    // API模式：通过服务器API获取数据
+                    const apiUrl = `http://${window.location.hostname}:3001/api/master-config`;
+                    response = await fetch(apiUrl);
+                } else {
+                    // 本地模式：直接访问文件
+                    response = await fetch('./data/master-config.json');
+                }
+                
+                if (response.ok) {
+                    const config = await response.json();
+                    console.log('成功加载配置，版本:', config.version);
+                    
+                    // 显示API配置（只读）
+                    if (config.apiConfig) {
+                        document.getElementById('apiConfig').value = JSON.stringify(config.apiConfig, null, 2);
+                        document.getElementById('apiConfig').disabled = true;
+                    }
+                    
+                    return config;
+                } else {
+                    console.log('master-config.json 加载失败，状态:', response.status);
+                }
+            } catch (error) {
+                console.log('从 master-config.json 加载配置失败:', error.message);
+            }
+            return null;
+        }
+        
+        // 加载集中化题库
+        async function loadMasterQuestionBank() {
+            try {
+                let response;
+                if (useApiMode) {
+                    // API模式：通过服务器API获取数据
+                    const apiUrl = `http://${window.location.hostname}:3001/api/master-questions`;
+                    response = await fetch(apiUrl);
+                } else {
+                    // 本地模式：直接访问文件
+                    response = await fetch('./data/master-questions.json');
+                }
+                
+                if (response.ok) {
+                    const masterData = await response.json();
+                    questionBank = masterData.questions;
+                    console.log('成功加载题库:', questionBank.length, '道题目');
+                    console.log('题库版本:', masterData.version, '更新时间:', masterData.lastUpdate);
+                    
+                    // 显示题库信息
+                    displayMasterInfo(masterData);
+                    
+                    return masterData;
+                } else {
+                    console.log('master-questions.json 加载失败，状态:', response.status);
+                }
+            } catch (error) {
+                console.log('从 master-questions.json 加载题库失败:', error.message);
+            }
+            return null;
+        }
+        
+        // 显示主题库信息
+        function displayMasterInfo(masterData) {
+            const infoDiv = document.createElement('div');
+            infoDiv.id = 'masterInfo';
+            infoDiv.innerHTML = `
+                <div style="background: #e8f5e8; border: 2px solid #28a745; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                    <h3 style="color: #155724; margin-bottom: 15px;">📚 集中化题库信息</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div><strong>题目总数：</strong>${masterData.totalQuestions}道</div>
+                        <div><strong>题目分类：</strong>${masterData.categories.join('、')}</div>
+                    </div>
+                    <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 5px; font-size: 14px;">
+                        💡 题库内容只能线下维护，此处仅供查看和管理考试记录
+                    </div>
+                </div>
+            `;
+            
+            // 插入到页面顶部
+            const container = document.querySelector('.container');
+            const firstChild = container.firstElementChild;
+            container.insertBefore(infoDiv, firstChild.nextSibling);
+        }
+        
+        // 禁用编辑功能
+        function disableEditFeatures() {
+            console.log('禁用题库编辑功能...');
+            
+            // 隐藏题库管理标签
+            const questionTab = document.querySelector('[onclick="showTab(\'questions\')"]');
+            if (questionTab) {
+                questionTab.style.display = 'none';
+            }
+            
+            // 隐藏批量导入标签
+            const importTab = document.querySelector('[onclick="showTab(\'import\')"]');
+            if (importTab) {
+                importTab.style.display = 'none';
+            }
+            
+            // 隐藏系统设置中的编辑按钮
+            const saveApiBtn = document.querySelector('[onclick="saveApiConfig()"]');
+            if (saveApiBtn) {
+                saveApiBtn.style.display = 'none';
+            }
+            
+            const loadDefaultBtn = document.querySelector('[onclick="loadDefaultApiConfig()"]');
+            if (loadDefaultBtn) {
+                loadDefaultBtn.style.display = 'none';
+            }
+            
+            // 添加只读提示
+            addReadOnlyNotices();
+        }
+        
+        // 添加只读提示
+        function addReadOnlyNotices() {
+            // 在系统设置中添加提示
+            const settingsTab = document.getElementById('settingsTab');
+            if (settingsTab) {
+                const notice = document.createElement('div');
+                notice.innerHTML = `
+                    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
+                        <h4 style="color: #856404; margin-bottom: 10px;">🔒 只读模式</h4>
+                        <p style="color: #856404; margin: 0;">API配置只能线下维护，此处仅供查看当前配置。</p>
+                    </div>
+                `;
+                settingsTab.insertBefore(notice, settingsTab.firstChild);
+            }
+        }
+        
+        // 加载题库数据（保留用于兼容）
+        function loadQuestionBank() {
+            // 已改为从集中化API加载，此函数保留用于兼容
+            console.log('loadQuestionBank() 已重定向到集中化加载');
+        }
+
+        // 保存题库数据
+        async function saveQuestionBank() {
+            // 保存到本地
+            localStorage.setItem('questionBank', JSON.stringify(questionBank));
+            localStorage.setItem('questionBankTimestamp', Date.now().toString());
+            console.log('题库已保存到本地');
+            
+            // 自动同步到服务器
+            await syncToServer();
+        }
+        
+        // 同步到服务器
+        async function syncToServer() {
+            try {
+                const response = await fetch('/api/sync-questionbank', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        questions: questionBank
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('题库已自动同步到服务器, 版本:', result.version);
+                    
+                    // 显示同步状态
+                    showSyncStatus('success', '题库已自动同步到所有设备');
+                } else {
+                    throw new Error('同步失败');
+                }
+            } catch (error) {
+                console.log('自动同步失败，将仅保存在本地:', error.message);
+                showSyncStatus('warning', '同步失败，仅保存在本地');
+            }
+        }
+        
+        // 显示同步状态
+        function showSyncStatus(type, message) {
+            const statusDiv = document.getElementById('syncStatus') || (() => {
+                const div = document.createElement('div');
+                div.id = 'syncStatus';
+                div.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 10px; border-radius: 5px; z-index: 9999; font-size: 14px;';
+                document.body.appendChild(div);
+                return div;
+            })();
+            
+            statusDiv.className = type === 'success' ? 'alert alert-success' : 'alert alert-warning';
+            statusDiv.textContent = message;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // 加载考试记录
+        async function loadExamRecords() {
+            try {
+                // 先尝试从服务器加载
+                const apiUrl = window.location.hostname === 'localhost' ? 
+                    'http://localhost:3001/api/exam-records' : 
+                    `http://${window.location.hostname}:3001/api/exam-records`;
+                const response = await fetch(apiUrl);
+                if (response.ok) {
+                    examRecords = await response.json();
+                    console.log(`从服务器加载了 ${examRecords.length} 条考试记录`);
+                    
+                    // 同步到localStorage作为备份
+                    localStorage.setItem('examRecords', JSON.stringify(examRecords));
+                    return;
+                }
+            } catch (error) {
+                console.warn('从服务器加载记录失败，使用本地缓存:', error);
+            }
+            
+            // 服务器加载失败，使用localStorage
+            const saved = localStorage.getItem('examRecords');
+            if (saved) {
+                try {
+                    examRecords = JSON.parse(saved);
+                    console.log(`从本地缓存加载了 ${examRecords.length} 条考试记录`);
+                } catch (error) {
+                    console.error('考试记录解析失败:', error);
+                    examRecords = [];
+                }
+            }
+        }
+
+        // 更新统计数据
+        function updateStats() {
+            document.getElementById('totalQuestions').textContent = questionBank.length;
+            document.getElementById('totalExams').textContent = examRecords.length;
+            
+            if (examRecords.length > 0) {
+                const avgScore = examRecords.reduce((sum, record) => sum + record.score, 0) / examRecords.length;
+                document.getElementById('averageScore').textContent = Math.round(avgScore);
+            } else {
+                document.getElementById('averageScore').textContent = '0';
+            }
+        }
+
+        // 显示选项卡
+        function showTab(tabName) {
+            // 隐藏所有选项卡内容
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // 移除所有选项卡的激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的选项卡
+            document.getElementById(tabName + 'Tab').classList.remove('hidden');
+            event.target.classList.add('active');
+            
+            // 如果是考试记录选项卡，加载记录
+            if (tabName === 'records') {
+                loadAndDisplayExamRecords();
+            }
+        }
+
+        // 题目添加功能已禁用 - 只能线下维护
+
+        // 显示题目列表
+        function displayQuestions() {
+            const container = document.getElementById('questionsList');
+            container.innerHTML = '';
+
+            if (questionBank.length === 0) {
+                container.innerHTML = '<p>暂无题目，请添加题目。</p>';
+                return;
+            }
+
+            questionBank.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-item';
+                questionDiv.innerHTML = `
+                    <div class="question-header">
+                        <span><strong>${question.category}</strong> - ${question.type === 'single' ? '单选题' : '多选题'}</span>
+                        <button class="btn btn-danger" onclick="deleteQuestion(${index})">删除</button>
+                    </div>
+                    <div><strong>题目：</strong>${question.question}</div>
+                    <div><strong>选项：</strong></div>
+                    <div style="margin-left: 20px;">
+                        A. ${question.optionA}<br>
+                        B. ${question.optionB}<br>
+                        ${question.optionC ? 'C. ' + question.optionC + '<br>' : ''}
+                        ${question.optionD ? 'D. ' + question.optionD + '<br>' : ''}
+                    </div>
+                    <div><strong>答案：</strong>${question.answer}</div>
+                    ${question.explanation ? '<div><strong>解析：</strong>' + question.explanation + '</div>' : ''}
+                `;
+                container.appendChild(questionDiv);
+            });
+        }
+
+        // 删除题目
+        function deleteQuestion(index) {
+            if (confirm('确定要删除这道题目吗？')) {
+                questionBank.splice(index, 1);
+                saveQuestionBank();
+                displayQuestions();
+                updateStats();
+            }
+        }
+
+        // 清空题库
+        function clearAllQuestions() {
+            if (confirm('确定要清空所有题目吗？此操作不可恢复！')) {
+                questionBank = [];
+                saveQuestionBank();
+                displayQuestions();
+                updateStats();
+                alert('题库已清空');
+            }
+        }
+
+        // 导入题目
+        async function importQuestions() {
+            const fileInput = document.getElementById('importFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请选择要导入的文件');
+                return;
+            }
+
+            const fileName = file.name.toLowerCase();
+            
+            try {
+                let importedData = [];
+                
+                if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+                    // Excel文件处理
+                    importedData = await importExcelFile(file);
+                } else if (fileName.endsWith('.json')) {
+                    // JSON文件处理
+                    const text = await file.text();
+                    importedData = JSON.parse(text);
+                } else {
+                    alert('不支持的文件格式，请选择Excel(.xlsx,.xls)或JSON(.json)文件');
+                    return;
+                }
+                
+                if (Array.isArray(importedData) && importedData.length > 0) {
+                    questionBank = questionBank.concat(importedData);
+                    saveQuestionBank();
+                    displayQuestions();
+                    updateStats();
+                    alert(`成功导入 ${importedData.length} 道题目！`);
+                } else {
+                    alert('文件中没有找到有效的题目数据');
+                }
+            } catch (error) {
+                console.error('导入错误:', error);
+                alert('文件导入失败：' + error.message);
+            }
+        }
+
+        // 加载默认题库
+        async function loadDefaultQuestions() {
+            if (confirm('确定要加载默认题库吗？这将添加54道题目到现有题库中，并自动同步到所有设备。')) {
+                try {
+                    const response = await fetch('./initial-questions.json');
+                    if (!response.ok) {
+                        throw new Error('无法加载默认题库文件');
+                    }
+                    const defaultQuestions = await response.json();
+                    
+                    // 检查是否已经有相同题目，避免重复
+                    let addedCount = 0;
+                    defaultQuestions.forEach(newQuestion => {
+                        const exists = questionBank.some(existingQuestion => 
+                            existingQuestion.question === newQuestion.question
+                        );
+                        if (!exists) {
+                            questionBank.push(newQuestion);
+                            addedCount++;
+                        }
+                    });
+                    
+                    // 保存并自动同步到服务器
+                    await saveQuestionBank();
+                    displayQuestions();
+                    updateStats();
+                    
+                    if (addedCount > 0) {
+                        alert(`成功加载默认题库，新增 ${addedCount} 道题目！\n所有销售设备将自动获取最新题库。`);
+                    } else {
+                        alert('默认题库中的所有题目都已存在，未添加新题目。');
+                    }
+                } catch (error) {
+                    console.error('加载默认题库失败:', error);
+                    alert('加载默认题库失败：' + error.message);
+                }
+            }
+        }
+
+
+        // Excel导入功能
+        async function importExcelFile(file) {
+            // 动态加载SheetJS库
+            if (!window.XLSX) {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+                await new Promise((resolve, reject) => {
+                    script.onload = resolve;
+                    script.onerror = () => reject(new Error('无法加载Excel解析库'));
+                    document.head.appendChild(script);
+                });
+            }
+            
+            const data = await file.arrayBuffer();
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            
+            console.log('Excel原始数据:', jsonData);
+            
+            // 转换Excel数据为标准格式
+            const questions = jsonData.map((row, index) => {
+                // 检测可能的列名
+                const questionText = row['题目'] || row['question'] || row['题目内容'] || row['Question'] || '';
+                const category = row['分类'] || row['category'] || row['Category'] || '通用';
+                const type = row['类型'] || row['type'] || row['Type'] || 'single';
+                
+                // 选项可能的列名
+                const optionA = row['选项A'] || row['A'] || row['optionA'] || row['选项1'] || '';
+                const optionB = row['选项B'] || row['B'] || row['optionB'] || row['选项2'] || '';
+                const optionC = row['选项C'] || row['C'] || row['optionC'] || row['选项3'] || '';
+                const optionD = row['选项D'] || row['D'] || row['optionD'] || row['选项4'] || '';
+                
+                // 答案可能的列名
+                const answer = row['答案'] || row['answer'] || row['Answer'] || row['正确答案'] || '';
+                const explanation = row['解析'] || row['explanation'] || row['Explanation'] || '';
+                
+                return {
+                    category: category,
+                    type: type.toLowerCase() === 'multiple' || type === '多选' ? 'multiple' : 'single',
+                    question: questionText,
+                    optionA: optionA,
+                    optionB: optionB,
+                    optionC: optionC,
+                    optionD: optionD,
+                    answer: answer.toString().toUpperCase(),
+                    explanation: explanation
+                };
+            }).filter(q => q.question && q.optionA && q.optionB && q.answer);
+            
+            console.log('转换后的题目:', questions);
+            return questions;
+        }
+
+        // 导出题库
+        function exportQuestions() {
+            if (questionBank.length === 0) {
+                alert('题库为空，无法导出');
+                return;
+            }
+
+            const dataStr = JSON.stringify(questionBank, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `题库_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // 导出考试记录
+        function exportExamRecords() {
+            if (examRecords.length === 0) {
+                alert('暂无考试记录');
+                return;
+            }
+
+            const dataStr = JSON.stringify(examRecords, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `考试记录_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        // 保存设置
+        function saveSettings() {
+            const apiConfig = document.getElementById('apiConfig').value;
+            if (apiConfig.trim()) {
+                try {
+                    const config = JSON.parse(apiConfig);
+                    localStorage.setItem('apiConfig', JSON.stringify(config));
+                    alert('API配置保存成功！');
+                } catch (error) {
+                    alert('JSON格式错误：' + error.message);
+                }
+            } else {
+                alert('请输入API配置');
+            }
+        }
+
+        // 加载默认API配置
+        function loadDefaultApiConfig() {
+            // 只提供通义千问选项
+            const config = {
+                "provider": "qwen",
+                "url": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+                "model": "qwen-turbo",
+                "key": "请填入您的通义千问API密钥",
+                "enabled": true
+            };
+            
+            document.getElementById('apiConfig').value = JSON.stringify(config, null, 2);
+            alert('已加载通义千问配置，请填入您的API密钥');
+        }
+
+        // 测试API连接
+        async function testApiConfig() {
+            const apiConfigText = document.getElementById('apiConfig').value;
+            if (!apiConfigText.trim()) {
+                alert('请先输入API配置');
+                return;
+            }
+
+            try {
+                const config = JSON.parse(apiConfigText);
+                
+                if (!config.url || !config.key) {
+                    alert('配置不完整，请检查url和key字段');
+                    return;
+                }
+                
+                console.log('测试API配置:', {
+                    url: config.url,
+                    model: config.model,
+                    keyPrefix: config.key.substring(0, 6) + '...'
+                });
+
+                const testPrompt = "你好，这是一个API连接测试，请简单回复。";
+                
+                const requestData = {
+                    model: config.model,
+                    messages: [
+                        {
+                            role: "user",
+                            content: testPrompt
+                        }
+                    ],
+                    max_tokens: 50,
+                    temperature: 0.7
+                };
+
+                console.log('发送请求到:', config.url);
+                console.log('请求数据:', requestData);
+                
+                const response = await fetch(config.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${config.key.trim()}`,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                console.log('响应状态:', response.status);
+                console.log('响应头:', [...response.headers.entries()]);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.choices && data.choices[0] && data.choices[0].message) {
+                        alert('API连接测试成功！\n\n响应内容：' + data.choices[0].message.content);
+                    } else {
+                        alert('API连接成功，但响应格式异常:\n' + JSON.stringify(data, null, 2));
+                    }
+                } else {
+                    const errorText = await response.text();
+                    let errorMsg = 'API连接失败：' + response.status + ' ' + response.statusText;
+                    
+                    if (response.status === 401) {
+                        errorMsg += '\n\n🔍 401错误诊断：';
+                        errorMsg += '\n1. 检查API密钥格式（应以sk-开头）';
+                        errorMsg += '\n2. 验证密钥是否有效（访问通义千问平台确认）';
+                        errorMsg += '\n3. 确认账户状态和余额';
+                        errorMsg += '\n4. 检查API调用配额';
+                        errorMsg += '\n\n💡 建议：';
+                        errorMsg += '\n• 重新生成API密钥';
+                        errorMsg += '\n• 访问阿里云DashScope控制台检查设置';
+                        errorMsg += '\n• 检查浏览器控制台的详细日志';
+                    }
+                    
+                    errorMsg += '\n\n错误详情：' + errorText;
+                    alert(errorMsg);
+                }
+                
+            } catch (error) {
+                alert('API测试失败：' + error.message);
+            }
+        }
+
+        // 页面加载时加载已保存的配置
+        function loadSavedApiConfig() {
+            const saved = localStorage.getItem('apiConfig');
+            if (saved) {
+                try {
+                    const config = JSON.parse(saved);
+                    document.getElementById('apiConfig').value = JSON.stringify(config, null, 2);
+                } catch (error) {
+                    console.error('加载API配置失败:', error);
+                }
+            }
+        }
+
+        // 更新销售链接
+        function updateSalesLink() {
+            const currentUrl = window.location.href;
+            const baseUrl = currentUrl.replace('admin.html', '');
+            const salesUrl = baseUrl + 'exam.html?mode=sales';
+            document.getElementById('salesLink').textContent = salesUrl;
+        }
+
+        // 复制销售链接
+        function copySalesLink() {
+            const link = document.getElementById('salesLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('链接已复制到剪贴板！');
+            });
+        }
+
+        // ========== 考试记录管理功能 ==========
+
+        // 加载并显示考试记录
+        async function loadAndDisplayExamRecords() {
+            await loadExamRecords(); // 使用之前定义的异步函数
+            const records = examRecords;
+            displayRecords(records);
+            updateStatistics(records);
+            
+            // 检查存储限制
+            setTimeout(checkStorageLimit, 1000);
+        }
+
+        // 获取考试记录
+        function getExamRecords() {
+            const records = localStorage.getItem('examRecords');
+            return records ? JSON.parse(records) : [];
+        }
+
+        // 保存考试记录
+        function saveExamRecords(records) {
+            localStorage.setItem('examRecords', JSON.stringify(records));
+        }
+
+        // 显示考试记录
+        function displayRecords(records) {
+            const tableBody = document.getElementById('recordsTableBody');
+            const noRecordsMessage = document.getElementById('noRecordsMessage');
+            
+            if (records.length === 0) {
+                tableBody.innerHTML = '';
+                noRecordsMessage.style.display = 'block';
+                return;
+            }
+            
+            noRecordsMessage.style.display = 'none';
+            
+            tableBody.innerHTML = records.map((record, index) => {
+                const scoreClass = getScoreClass(record.score);
+                
+                return `
+                    <tr style="border-bottom: 1px solid #dee2e6;">
+                        <td style="padding: 12px;">${index + 1}</td>
+                        <td style="padding: 12px;">${formatDateTime(record.timestamp)}</td>
+                        <td style="padding: 12px; font-weight: bold;">${record.userName || '未填写'}</td>
+                        <td style="padding: 12px; text-align: center;">
+                            <span class="${scoreClass}" style="padding: 4px 8px; border-radius: 4px; font-weight: bold;">
+                                ${record.score}分
+                            </span>
+                        </td>
+                        <td style="padding: 12px; text-align: center;">
+                            <button class="btn" style="padding: 4px 8px; font-size: 12px; background: #007bff; color: white;" 
+                                    onclick="viewRecordDetail('${record.id}')">查看详情</button>
+                            <button class="btn" style="padding: 4px 8px; font-size: 12px; background: #dc3545; color: white; margin-left: 5px;" 
+                                    onclick="deleteRecord('${record.id}')">删除</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // 获取分数对应的样式类
+        function getScoreClass(score) {
+            if (score >= 90) return 'score-excellent';
+            if (score >= 80) return 'score-good';  
+            if (score >= 60) return 'score-pass';
+            return 'score-fail';
+        }
+
+
+        // 格式化日期时间
+        function formatDateTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        // 更新统计信息
+        function updateStatistics(records) {
+            const totalRecords = records.length;
+            const totalScore = records.reduce((sum, record) => sum + record.score, 0);
+            const averageScore = totalRecords > 0 ? Math.round(totalScore / totalRecords) : 0;
+            const passCount = records.filter(record => record.score >= 60).length;
+            const passRate = totalRecords > 0 ? Math.round((passCount / totalRecords) * 100) : 0;
+            
+            document.getElementById('totalRecords').textContent = totalRecords;
+            document.getElementById('averageScore').textContent = averageScore;
+            document.getElementById('passRate').textContent = passRate + '%';
+        }
+
+        // 筛选记录
+        function filterRecords() {
+            const allRecords = getExamRecords();
+            const nameFilter = document.getElementById('nameFilter').value.toLowerCase();
+            const scoreFilter = document.getElementById('scoreFilter').value;
+            const timeSort = document.getElementById('timeSort').value;
+            
+            let filteredRecords = allRecords.filter(record => {
+                // 姓名筛选
+                const nameMatch = !nameFilter || (record.userName && record.userName.toLowerCase().includes(nameFilter));
+                
+                // 分数筛选
+                let scoreMatch = true;
+                if (scoreFilter !== 'all') {
+                    switch (scoreFilter) {
+                        case 'excellent':
+                            scoreMatch = record.score >= 90;
+                            break;
+                        case 'good':
+                            scoreMatch = record.score >= 80 && record.score < 90;
+                            break;
+                        case 'pass':
+                            scoreMatch = record.score >= 60 && record.score < 80;
+                            break;
+                        case 'fail':
+                            scoreMatch = record.score < 60;
+                            break;
+                    }
+                }
+                
+                return nameMatch && scoreMatch;
+            });
+            
+            // 时间排序
+            filteredRecords.sort((a, b) => {
+                if (timeSort === 'desc') {
+                    return new Date(b.timestamp) - new Date(a.timestamp);
+                } else {
+                    return new Date(a.timestamp) - new Date(b.timestamp);
+                }
+            });
+            
+            displayRecords(filteredRecords);
+            updateStatistics(filteredRecords);
+        }
+
+        // 刷新记录
+        function refreshRecords() {
+            loadAndDisplayExamRecords();
+            // 重置筛选条件
+            document.getElementById('nameFilter').value = '';
+            document.getElementById('scoreFilter').value = 'all';
+            document.getElementById('timeSort').value = 'desc';
+        }
+
+        // 清空所有记录
+        function clearAllRecords() {
+            if (confirm('确定要清空所有考试记录吗？此操作不可恢复！')) {
+                localStorage.removeItem('examRecords');
+                loadAndDisplayExamRecords();
+                alert('所有考试记录已清空！');
+            }
+        }
+
+        // 查看记录详情
+        function viewRecordDetail(recordId) {
+            const records = getExamRecords();
+            const record = records.find(r => r.id === recordId);
+            
+            if (!record) {
+                alert('记录不存在！');
+                return;
+            }
+            
+            let detailHtml = `
+                <div style="max-width: 600px; max-height: 70vh; overflow-y: auto;">
+                    <h3>考试详情</h3>
+                    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <p><strong>姓名：</strong>${record.userName || '未填写'}</p>
+                        <p><strong>考试时间：</strong>${formatDateTime(record.timestamp)}</p>
+                        <p><strong>总分：</strong>${record.score}分</p>
+                        <p><strong>用时：</strong>${Math.floor(record.duration / 60)}分${record.duration % 60}秒</p>
+                    </div>
+            `;
+            
+            if (record.questions && record.questions.length > 0) {
+                detailHtml += '<h4>答题详情：</h4>';
+                record.questions.forEach((q, index) => {
+                    const isCorrect = q.isCorrect;
+                    const questionIdDisplay = q.questionId ? `（题库ID: ${q.questionId}）` : '';
+                    detailHtml += `
+                        <div style="margin-bottom: 15px; padding: 10px; border: 1px solid ${isCorrect ? '#28a745' : '#dc3545'}; border-radius: 5px;">
+                            <p><strong>第${index + 1}题${questionIdDisplay}：</strong>${q.question}</p>
+                            <p><strong>正确答案：</strong>${Array.isArray(q.correctAnswer) ? q.correctAnswer.join(', ') : q.correctAnswer || '未知'}</p>
+                            <p><strong>用户答案：</strong>${Array.isArray(q.userAnswer) ? q.userAnswer.join(', ') : q.userAnswer || '未答'}</p>
+                            <p style="color: ${isCorrect ? '#28a745' : '#dc3545'};">
+                                <strong>${isCorrect ? '✓ 正确' : '✗ 错误'}</strong>
+                            </p>
+                        </div>
+                    `;
+                });
+            }
+            
+            detailHtml += '</div>';
+            
+            // 创建模态框
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.5); z-index: 1000; 
+                display: flex; justify-content: center; align-items: center;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: white; padding: 20px; border-radius: 8px; 
+                max-width: 90%; max-height: 90%; position: relative;
+            `;
+            
+            modalContent.innerHTML = detailHtml + `
+                <button onclick="this.closest('.modal').remove()" 
+                        style="position: absolute; top: 10px; right: 15px; 
+                               background: #dc3545; color: white; border: none; 
+                               border-radius: 50%; width: 30px; height: 30px; 
+                               cursor: pointer;">×</button>
+            `;
+            
+            modal.className = 'modal';
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // 点击背景关闭
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            };
+        }
+
+        // 删除记录
+        function deleteRecord(recordId) {
+            if (confirm('确定要删除这条考试记录吗？')) {
+                const records = getExamRecords();
+                const filteredRecords = records.filter(r => r.id !== recordId);
+                saveExamRecords(filteredRecords);
+                loadAndDisplayExamRecords();
+                alert('记录已删除！');
+            }
+        }
+
+        // ========== 数据存储管理功能 ==========
+
+        // 检查localStorage使用情况
+        function checkStorageUsage() {
+            try {
+                const storage = {};
+                let totalSize = 0;
+                
+                // 计算各种数据的大小
+                for (let key in localStorage) {
+                    if (localStorage.hasOwnProperty(key)) {
+                        const value = localStorage.getItem(key);
+                        const size = new Blob([value]).size;
+                        storage[key] = {
+                            size: size,
+                            sizeFormatted: formatBytes(size),
+                            records: key === 'examRecords' ? JSON.parse(value || '[]').length : null
+                        };
+                        totalSize += size;
+                    }
+                }
+                
+                return {
+                    total: totalSize,
+                    totalFormatted: formatBytes(totalSize),
+                    details: storage,
+                    usage: ((totalSize / (5 * 1024 * 1024)) * 100).toFixed(1) // 假设5MB限制
+                };
+            } catch (error) {
+                console.error('检查存储使用情况失败:', error);
+                return null;
+            }
+        }
+
+        // 格式化字节大小
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 显示存储使用情况
+        function showStorageUsage() {
+            const usage = checkStorageUsage();
+            if (!usage) {
+                alert('无法获取存储使用情况');
+                return;
+            }
+            
+            let message = `📊 localStorage 使用情况\n\n`;
+            message += `总使用量: ${usage.totalFormatted} (${usage.usage}%)\n\n`;
+            
+            message += `📋 详细分布:\n`;
+            for (let key in usage.details) {
+                const detail = usage.details[key];
+                message += `• ${key}: ${detail.sizeFormatted}`;
+                if (detail.records !== null) {
+                    message += ` (${detail.records}条记录)`;
+                }
+                message += `\n`;
+            }
+            
+            message += `\n⚠️ 建议:\n`;
+            if (parseFloat(usage.usage) > 80) {
+                message += `• 存储使用率过高，建议清理旧记录\n`;
+                message += `• 导出重要数据后删除部分历史记录\n`;
+            } else if (parseFloat(usage.usage) > 60) {
+                message += `• 存储使用率较高，建议定期清理\n`;
+            } else {
+                message += `• 存储使用正常\n`;
+            }
+            
+            alert(message);
+        }
+
+        // 自动清理旧记录
+        function autoCleanOldRecords() {
+            const records = getExamRecords();
+            if (records.length <= 100) {
+                alert('记录数量不多，无需清理');
+                return;
+            }
+            
+            const options = [
+                { days: 30, label: '30天前' },
+                { days: 90, label: '90天前' },
+                { days: 180, label: '180天前' },
+                { days: 365, label: '1年前' }
+            ];
+            
+            let choice = prompt(
+                `当前有 ${records.length} 条考试记录\n\n` +
+                `选择清理策略:\n` +
+                `1. 删除30天前的记录\n` +
+                `2. 删除90天前的记录\n` +
+                `3. 删除180天前的记录\n` +
+                `4. 删除1年前的记录\n\n` +
+                `请输入数字 1-4:`
+            );
+            
+            choice = parseInt(choice);
+            if (choice < 1 || choice > 4) {
+                alert('无效选择');
+                return;
+            }
+            
+            const cutoffDays = options[choice - 1].days;
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - cutoffDays);
+            
+            const filteredRecords = records.filter(record => {
+                return new Date(record.timestamp) > cutoffDate;
+            });
+            
+            const deletedCount = records.length - filteredRecords.length;
+            
+            if (deletedCount === 0) {
+                alert(`没有找到${options[choice - 1].label}的记录`);
+                return;
+            }
+            
+            if (confirm(`将删除 ${deletedCount} 条${options[choice - 1].label}的记录，确定继续吗？`)) {
+                saveExamRecords(filteredRecords);
+                loadAndDisplayExamRecords();
+                alert(`已删除 ${deletedCount} 条旧记录！\n剩余 ${filteredRecords.length} 条记录`);
+            }
+        }
+
+        // 批量导出记录
+        function exportAllRecords() {
+            const records = getExamRecords();
+            if (records.length === 0) {
+                alert('没有考试记录可导出');
+                return;
+            }
+            
+            // 生成CSV格式
+            let csvContent = '序号,考试时间,姓名,分数,考试用时\n';
+            
+            records.forEach((record, index) => {
+                const examTime = formatDateTime(record.timestamp);
+                const duration = `${Math.floor(record.duration / 60)}分${record.duration % 60}秒`;
+                
+                csvContent += `${index + 1},"${examTime}","${record.userName || '未填写'}",${record.score}分,"${duration}"\n`;
+            });
+            
+            // 下载文件
+            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `考试记录_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert(`已导出 ${records.length} 条记录`);
+        }
+
+        // 检查存储限制并预警
+        function checkStorageLimit() {
+            const usage = checkStorageUsage();
+            if (!usage) return;
+            
+            const usagePercent = parseFloat(usage.usage);
+            
+            if (usagePercent > 90) {
+                if (confirm('⚠️ 存储空间即将用完！\n\n' +
+                    `当前使用: ${usage.totalFormatted} (${usage.usage}%)\n\n` +
+                    '建议立即清理旧记录，是否现在清理？')) {
+                    autoCleanOldRecords();
+                }
+            } else if (usagePercent > 80) {
+                if (confirm('⚠️ 存储空间使用率较高\n\n' +
+                    `当前使用: ${usage.totalFormatted} (${usage.usage}%)\n\n` +
+                    '建议清理旧记录，是否现在清理？')) {
+                    autoCleanOldRecords();
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .score-excellent { background: #28a745; color: white; }
+        .score-good { background: #17a2b8; color: white; }
+        .score-pass { background: #ffc107; color: #212529; }
+        .score-fail { background: #dc3545; color: white; }
+    </style>
+</body>
+</html>

@@ -19,7 +19,16 @@
       "Bash(ls:*)",
       "Bash(mkdir:*)",
       "Bash(rm:*)",
-      "WebFetch(domain:api-docs.deepseek.com)"
+      "WebFetch(domain:api-docs.deepseek.com)",
+      "Bash(open:*)",
+      "Bash(chmod:*)",
+      "Bash(python3:*)",
+      "Bash(find:*)",
+      "Bash(docker:*)",
+      "Bash(pkill:*)",
+      "Bash(true)",
+      "Bash(NO_PROXY=\"*\" curl -s http://localhost:3001/api/exam-records)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }

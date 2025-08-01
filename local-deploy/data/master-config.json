@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "lastUpdate": "2025-01-22T00:00:00Z",
+  "apiConfig": {
+    "provider": "qwen",
+    "url": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+    "model": "qwen-turbo",
+    "key": "sk-4b10986087d4481e88acdc0378c56e6f",
+    "enabled": true
+  },
+  "systemInfo": {
+    "title": "穆桥销售测验系统",
+    "description": "专业销售知识测评平台",
+    "examDuration": 30,
+    "questionsPerExam": 15,
+    "passingScore": 60
+  },
+  "permissions": {
+    "allowAdminEdit": false,
+    "allowApiEdit": false,
+    "allowQuestionEdit": false
+  }
+}

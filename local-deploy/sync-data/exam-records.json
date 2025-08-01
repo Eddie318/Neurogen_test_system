@@ -1,0 +1,391 @@
+[
+  {
+    "id": "exam_1753321852813_a5brfxg53",
+    "timestamp": 1753321852813,
+    "date": "2025-07-24T01:50:52.801Z",
+    "userName": "134",
+    "score": 0,
+    "correctCount": 0,
+    "totalQuestions": 5,
+    "duration": 0,
+    "questions": [
+      {
+        "questionId": 2,
+        "question": "女性癫痫患者选择抗发作药物时需要注意哪些问题",
+        "correctAnswer": "ABC",
+        "userAnswer": [
+          "A",
+          "D"
+        ],
+        "isCorrect": false,
+        "category": "疾病",
+        "explanation": ""
+      },
+      {
+        "questionId": 23,
+        "question": "左乙拉西坦适合老年患者使用，因为如下特点",
+        "correctAnswer": "D",
+        "userAnswer": [
+          "C"
+        ],
+        "isCorrect": false,
+        "category": "开浦兰",
+        "explanation": ""
+      },
+      {
+        "questionId": 18,
+        "question": "奥卡西平可能会与以下哪些老年患者常用药物产生相互作用",
+        "correctAnswer": "ABCD",
+        "userAnswer": [
+          "B",
+          "C"
+        ],
+        "isCorrect": false,
+        "category": "ASM",
+        "explanation": ""
+      },
+      {
+        "questionId": 26,
+        "question": "左乙拉西坦血药浓度达峰时间为？",
+        "correctAnswer": "A",
+        "userAnswer": [
+          "D"
+        ],
+        "isCorrect": false,
+        "category": "开浦兰",
+        "explanation": ""
+      },
+      {
+        "questionId": 7,
+        "question": "（）治疗是最重要、最基本的治疗，也是大部分癫痫患者的首选治疗方式。",
+        "correctAnswer": "A",
+        "userAnswer": [
+          "C"
+        ],
+        "isCorrect": false,
+        "category": "指南",
+        "explanation": ""
+      }
+    ],
+    "isSalesMode": true
+  },
+  {
+    "id": "exam_1753322538826_nc3n3qonl",
+    "timestamp": 1753322538826,
+    "date": "2025-07-24T02:02:18.813Z",
+    "userName": "134",
+    "score": 20,
+    "correctCount": 1,
+    "totalQuestions": 5,
+    "duration": 0,
+    "questions": [
+      {
+        "questionId": 25,
+        "question": "左乙拉西坦适合女性癫痫患者使用，因为如下特点：",
+        "correctAnswer": "D",
+        "userAnswer": [
+          "B"
+        ],
+        "isCorrect": false,
+        "category": "开浦兰",
+        "explanation": ""
+      },
+      {
+        "questionId": 10,
+        "question": "中国老年癫痫患者管理专家共识推荐：对合并有严重心脑血管基础病的老年癫痫患者,慎重使用钠通道阻滞剂和丙戊酸,可考虑选择(Ⅱ级证据,B级推荐)",
+        "correctAnswer": "ACD",
+        "userAnswer": [
+          "C"
+        ],
+        "isCorrect": false,
+        "category": "指南",
+        "explanation": ""
+      },
+      {
+        "questionId": 35,
+        "question": "对于维派特，以下描述错误的是：",
+        "correctAnswer": "C",
+        "userAnswer": [
+          "D"
+        ],
+        "isCorrect": false,
+        "category": "维派特",
+        "explanation": ""
+      },
+      {
+        "questionId": 33,
+        "question": "维派特成人单药治疗时，初始剂量为（）mg,bid；最高剂量每日（）mg",
+        "correctAnswer": "D",
+        "userAnswer": [
+          "C"
+        ],
+        "isCorrect": false,
+        "category": "维派特",
+        "explanation": ""
+      },
+      {
+        "questionId": 24,
+        "question": "使用左乙拉西坦的女性患者哺乳，其药物乳汁/血浆比例",
+        "correctAnswer": "B",
+        "userAnswer": [
+          "B"
+        ],
+        "isCorrect": true,
+        "category": "开浦兰",
+        "explanation": ""
+      }
+    ],
+    "isSalesMode": true
+  },
+  {
+    "id": "exam_1753756524707_hts6gj7ck",
+    "timestamp": 1753756524707,
+    "date": "2025-07-29T02:35:24.611Z",
+    "userName": "牟家轩",
+    "score": 0,
+    "correctCount": 0,
+    "totalQuestions": 5,
+    "duration": 1,
+    "questions": [
+      {
+        "questionId": 33,
+        "question": "维派特成人单药治疗时，初始剂量为（）mg,bid；最高剂量每日（）mg",
+        "correctAnswer": "D",
+        "userAnswer": [
+          "C"
+        ],
+        "isCorrect": false,
+        "category": "维派特",
+        "explanation": ""
+      },
+      {
+        "questionId": 31,
+        "question": "研究表明：4-17岁儿童维派特联用任意ASM（）周，严重TEAEs发生率及停药率均与安慰剂相当",
+        "correctAnswer": "C",
+        "userAnswer": [
+          "B"
+        ],
+        "isCorrect": false,
+        "category": "维派特",
+        "explanation": ""
+      },
+      {
+        "questionId": 20,
+        "question": "丙戊酸可能会与以下哪些老年患者常用药物产生相互作用",
+        "correctAnswer": "ABCD",
+        "userAnswer": [
+          "B"
+        ],
+        "isCorrect": false,
+        "category": "ASM",
+        "explanation": ""
+      },
+      {
+        "questionId": 6,
+        "question": "根据卒中后癫痫诊治的中国专家共识，最新有研究显示静脉使用（）在控制非惊厥性癫痫持续状态（NCSE）时显示出良好的安全性和有效性，推荐作为PSE患者NCSE的一线用药",
+        "correctAnswer": "A",
+        "userAnswer": [],
+        "isCorrect": false,
+        "category": "指南",
+        "explanation": ""
+      },
+      {
+        "questionId": 10,
+        "question": "中国老年癫痫患者管理专家共识推荐：对合并有严重心脑血管基础病的老年癫痫患者,慎重使用钠通道阻滞剂和丙戊酸,可考虑选择(Ⅱ级证据,B级推荐)",
+        "correctAnswer": "ACD",
+        "userAnswer": [
+          "B",
+          "C"
+        ],
+        "isCorrect": false,
+        "category": "指南",
+        "explanation": ""
+      }
+    ],
+    "isSalesMode": true
+  },
+  {
+    "id": "exam_1753756570772_tafb9e6jg",
+    "timestamp": 1753756570772,
+    "date": "2025-07-29T02:36:10.707Z",
+    "userName": "牟家轩",
+    "score": 60,
+    "correctCount": 3,
+    "totalQuestions": 5,
+    "duration": 0,
+    "questions": [
+      {
+        "questionId": 9,
+        "question": "2022版癫痫伴抑郁诊断治疗的中国专家共识明确说明：哪种抗癫痫药对抑郁有正性作用",
+        "correctAnswer": "A",
+        "userAnswer": [
+          "C"
+        ],
+        "isCorrect": false,
+        "category": "指南",
+        "explanation": ""
+      },
+      {
+        "questionId": 26,
+        "question": "左乙拉西坦血药浓度达峰时间为？",
+        "correctAnswer": "A",
+        "userAnswer": [
+          "B"
+        ],
+        "isCorrect": false,
+        "category": "开浦兰",
+        "explanation": ""
+      },
+      {
+        "questionId": 6,
+        "question": "根据卒中后癫痫诊治的中国专家共识，最新有研究显示静脉使用（）在控制非惊厥性癫痫持续状态（NCSE）时显示出良好的安全性和有效性，推荐作为PSE患者NCSE的一线用药",
+        "correctAnswer": "A",
+        "userAnswer": [
+          "A"
+        ],
+        "isCorrect": true,
+        "category": "指南",
+        "explanation": ""
+      },
+      {
+        "questionId": 4,
+        "question": "癫痫异常放电在发作初期就同时累及了双侧大脑半球，运动症状和发作的脑电图变化均为双侧性的是：",
+        "correctAnswer": "D",
+        "userAnswer": [
+          "D"
+        ],
+        "isCorrect": true,
+        "category": "疾病",
+        "explanation": ""
+      },
+      {
+        "questionId": 1,
+        "question": "按照癫痫发作类型的分类中，发作比例最高的是？",
+        "correctAnswer": "B",
+        "userAnswer": [
+          "B"
+        ],
+        "isCorrect": true,
+        "category": "疾病",
+        "explanation": ""
+      }
+    ],
+    "isSalesMode": true
+  },
+  {
+    "id": "exam_1753757163205_r7ffmmnj5",
+    "timestamp": 1753757163205,
+    "date": "2025-07-29T02:46:03.049Z",
+    "userName": "",
+    "score": 0,
+    "correctCount": 0,
+    "totalQuestions": 5,
+    "duration": 0,
+    "questions": [
+      {
+        "questionId": 29,
+        "question": "开浦兰针剂在成人及50kg以上儿童患者使用时，起始剂量，最大剂量",
+        "correctAnswer": "AC",
+        "userAnswer": [],
+        "isCorrect": false,
+        "category": "开浦兰",
+        "explanation": ""
+      },
+      {
+        "questionId": 16,
+        "question": "联合用药时要注意药物间相互作用，下面哪种药不是肝酶诱导剂：",
+        "correctAnswer": "CD",
+        "userAnswer": [],
+        "isCorrect": false,
+        "category": "ASM",
+        "explanation": ""
+      },
+      {
+        "questionId": 36,
+        "question": "老年患者使用维派特，描述正确的是：",
+        "correctAnswer": "ABCD",
+        "userAnswer": [],
+        "isCorrect": false,
+        "category": "维派特",
+        "explanation": ""
+      },
+      {
+        "questionId": 11,
+        "question": "强直-阵挛性癫痫持续（）分钟即为癫痫持续状态",
+        "correctAnswer": "B",
+        "userAnswer": [],
+        "isCorrect": false,
+        "category": "指南",
+        "explanation": ""
+      },
+      {
+        "questionId": 19,
+        "question": "大规模研究显示左乙拉西坦的先天畸形发生低，丙戊酸先天畸形发生率高达（）%​",
+        "correctAnswer": "D",
+        "userAnswer": [],
+        "isCorrect": false,
+        "category": "ASM",
+        "explanation": ""
+      }
+    ],
+    "isSalesMode": true
+  },
+  {
+    "id": "exam_1753761527983_3j5nplp9p",
+    "timestamp": 1753761527983,
+    "date": "2025-07-29T03:58:47.952Z",
+    "userName": "",
+    "score": 0,
+    "correctCount": 0,
+    "totalQuestions": 5,
+    "duration": 0,
+    "questions": [
+      {
+        "questionId": 1,
+        "question": "按照癫痫发作类型的分类中，发作比例最高的是？",
+        "correctAnswer": "B",
+        "userAnswer": [],
+        "isCorrect": false,
+        "category": "疾病",
+        "explanation": ""
+      },
+      {
+        "questionId": 22,
+        "question": "服用AEDs，尤其具有酶诱导作用的AEDs女性患者应该：",
+        "correctAnswer": "ABCD",
+        "userAnswer": [],
+        "isCorrect": false,
+        "category": "ASM",
+        "explanation": ""
+      },
+      {
+        "questionId": 51,
+        "question": "关于优普洛，以下说法正确的是：",
+        "correctAnswer": "ABCD",
+        "userAnswer": [],
+        "isCorrect": false,
+        "category": "优普洛",
+        "explanation": ""
+      },
+      {
+        "questionId": 5,
+        "question": "根据卒中后癫痫（PSE）诊治的中国专家共识，加巴喷丁、（）、拉莫三嗪等不良反应发生率低，与抗凝药或抗血小板药物之间无显著相互作用，对血脂影响小，推荐作为PSE首选用药",
+        "correctAnswer": "C",
+        "userAnswer": [],
+        "isCorrect": false,
+        "category": "指南",
+        "explanation": ""
+      },
+      {
+        "questionId": 27,
+        "question": "开浦兰针剂与口服给药如何转换？",
+        "correctAnswer": "ABC",
+        "userAnswer": [],
+        "isCorrect": false,
+        "category": "开浦兰",
+        "explanation": ""
+      }
+    ],
+    "isSalesMode": true
+  }
+]

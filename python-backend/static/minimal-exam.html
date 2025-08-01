@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>最简化考试界面</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .card { background: white; border-radius: 10px; padding: 30px; margin: 20px 0; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .question { font-size: 18px; line-height: 1.6; margin-bottom: 20px; color: #333; }
+        .options { display: grid; gap: 15px; }
+        .option { padding: 15px 20px; border: 2px solid #e1e8ed; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; background: #fafbfc; }
+        .option:hover { border-color: #667eea; background: #f8f9ff; }
+        .option.selected { border-color: #667eea; background: #667eea; color: white; }
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; }
+        .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-success { background: #48bb78; color: white; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .type-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; color: white; }
+        .single-choice { background: #48bb78; }
+        .multiple-choice { background: #ed8936; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="card">
+            <h1 style="text-align: center; color: #667eea;">🎯 考试系统测试</h1>
+            
+            <div v-if="!started">
+                <button class="btn btn-primary" @click="startPractice">开始随机练习</button>
+            </div>
+            
+            <div v-else-if="currentQuestion">
+                <div class="question">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                        <span>第 {{ currentQuestionIndex + 1 }} 题 / {{ questions.length }}</span>
+                        <span class="type-badge" :class="currentQuestion.type === 'multiple' ? 'multiple-choice' : 'single-choice'">
+                            {{ currentQuestion.type === 'multiple' ? '多选题' : '单选题' }}
+                        </span>
+                    </div>
+                    
+                    <div style="font-size: 18px; margin-bottom: 20px;">
+                        {{ currentQuestion.question }}
+                    </div>
+                    
+                    <div v-if="currentQuestion.type === 'multiple'" style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                        💡 请选择所有正确答案
+                    </div>
+                </div>
+                
+                <div class="options">
+                    <div 
+                        v-for="option in ['A', 'B', 'C', 'D']" 
+                        :key="option"
+                        v-if="currentQuestion['option' + option]"
+                        class="option"
+                        :class="{ selected: isSelected(option) }"
+                        @click="selectOption(option)"
+                    >
+                        <strong>{{ option }}.</strong> {{ currentQuestion['option' + option] }}
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-primary" @click="previousQuestion" :disabled="currentQuestionIndex === 0">
+                        ⬅️ 上一题
+                    </button>
+                    
+                    <span>已答: {{ Object.keys(userAnswers).length }} / {{ questions.length }}</span>
+                    
+                    <button v-if="currentQuestionIndex < questions.length - 1" 
+                            class="btn btn-primary" 
+                            @click="nextQuestion">
+                        下一题 ➡️
+                    </button>
+                    <button v-else 
+                            class="btn btn-success" 
+                            @click="finishExam"
+                            :disabled="Object.keys(userAnswers).length === 0">
+                        🎯 完成考试
+                    </button>
+                </div>
+            </div>
+            
+            <div v-else>
+                <p>正在加载题目...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    started: false,
+                    questions: [],
+                    currentQuestionIndex: 0,
+                    userAnswers: {}
+                }
+            },
+            computed: {
+                currentQuestion() {
+                    return this.questions[this.currentQuestionIndex] || null;
+                }
+            },
+            methods: {
+                async startPractice() {
+                    try {
+                        const response = await axios.get('/api/questions', {
+                            params: { 
+                                limit: 5, 
+                                random_sample: true 
+                            }
+                        });
+                        this.questions = response.data;
+                        this.started = true;
+                        console.log('加载题目成功:', this.questions.length, '道题');
+                    } catch (error) {
+                        console.error('加载题目失败:', error);
+                        alert('加载题目失败: ' + error.message);
+                    }
+                },
+                
+                isSelected(option) {
+                    const userAnswer = this.userAnswers[this.currentQuestionIndex] || '';
+                    if (this.currentQuestion.type === 'multiple') {
+                        return userAnswer.includes(option);
+                    } else {
+                        return userAnswer === option;
+                    }
+                },
+                
+                selectOption(option) {
+                    const questionIndex = this.currentQuestionIndex;
+                    
+                    if (this.currentQuestion.type === 'multiple') {
+                        let currentAnswers = this.userAnswers[questionIndex] || '';
+                        
+                        if (currentAnswers.includes(option)) {
+                            // 取消选择
+                            currentAnswers = currentAnswers.replace(option, '');
+                        } else {
+                            // 添加选择
+                            currentAnswers += option;
+                            currentAnswers = currentAnswers.split('').sort().join('');
+                        }
+                        
+                        this.userAnswers[questionIndex] = currentAnswers;
+                    } else {
+                        this.userAnswers[questionIndex] = option;
+                    }
+                    
+                    console.log('选择答案:', option, '当前答案:', this.userAnswers[questionIndex]);
+                },
+                
+                nextQuestion() {
+                    if (this.currentQuestionIndex < this.questions.length - 1) {
+                        this.currentQuestionIndex++;
+                    }
+                },
+                
+                previousQuestion() {
+                    if (this.currentQuestionIndex > 0) {
+                        this.currentQuestionIndex--;
+                    }
+                },
+                
+                finishExam() {
+                    alert(`考试完成！\n答题统计: ${Object.keys(this.userAnswers).length}/${this.questions.length}\n答案: ${JSON.stringify(this.userAnswers)}`);
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

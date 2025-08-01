@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>穆桥销售测验系统</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f7fa; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px; margin-bottom: 30px; }
+        .card { background: white; border-radius: 10px; padding: 30px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .question { font-size: 18px; line-height: 1.6; margin-bottom: 20px; color: #333; }
+        .options { display: grid; gap: 15px; }
+        .option { padding: 15px 20px; border: 2px solid #e1e8ed; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; background: #fafbfc; }
+        .option:hover { border-color: #667eea; background: #f8f9ff; }
+        .option.selected { border-color: #667eea; background: #667eea; color: white; }
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; }
+        .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; transition: all 0.3s ease; text-decoration: none; display: inline-block; text-align: center; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-success { background: #48bb78; color: white; }
+        .btn-success:hover { background: #38a169; }
+        .btn-secondary { background: #a0aec0; color: white; }
+        .btn-secondary:hover { background: #718096; }
+        .progress-bar { width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.3s ease; }
+        .timer { font-size: 18px; font-weight: bold; color: #e53e3e; }
+        .result-card { text-align: center; }
+        .score { font-size: 48px; font-weight: bold; color: #48bb78; margin: 20px 0; }
+        .loading { text-align: center; padding: 40px; }
+        .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .mode-selection { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .mode-card { padding: 30px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; text-align: center; background: white; }
+        .mode-card:hover { border-color: #667eea; background: #f8f9ff; }
+        .mode-card.selected { border-color: #667eea; background: #667eea; color: white; }
+        .mode-icon { font-size: 48px; margin-bottom: 15px; }
+        .mode-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .mode-desc { color: #718096; font-size: 14px; }
+        .mode-card.selected .mode-desc { color: rgba(255,255,255,0.8); }
+        
+        .exam-list { display: grid; gap: 15px; margin-bottom: 20px; }
+        .exam-item { padding: 20px; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; background: white; }
+        .exam-item:hover { border-color: #667eea; background: #f8f9ff; }
+        .exam-item.selected { border-color: #667eea; background: #667eea; color: white; }
+        .exam-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
+        .exam-info { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .exam-status { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .status-active { background: #48bb78; color: white; }
+        .status-upcoming { background: #ed8936; color: white; }
+        .status-expired { background: #a0aec0; color: white; }
+        
+        .answer-review { margin-top: 30px; }
+        .answer-item { border: 2px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 15px; }
+        .answer-question { font-weight: bold; margin-bottom: 15px; color: #2d3748; }
+        .answer-options { display: grid; gap: 10px; margin-bottom: 15px; }
+        .answer-option { padding: 10px 15px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .answer-option.correct { background: #c6f6d5; border-color: #48bb78; color: #2f855a; }
+        .answer-option.wrong { background: #fed7d7; border-color: #f56565; color: #c53030; }
+        .answer-option.not-selected { background: #f7fafc; color: #718096; }
+        .answer-explanation { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 6px; padding: 15px; margin-top: 10px; }
+        .ai-report { background: #f7fafc; border: 2px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-top: 20px; white-space: pre-wrap; line-height: 1.6; }
+        .ai-loading { text-align: center; padding: 20px; color: #718096; }
+        
+        .checkbox, .radio { 
+            width: 20px; 
+            height: 20px; 
+            border: 2px solid #e1e8ed; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 12px; 
+            font-weight: bold;
+            flex-shrink: 0;
+            background: white;
+            color: transparent;
+        }
+        .checkbox { border-radius: 4px; }
+        .radio { border-radius: 50%; }
+        .checkbox.checked, .radio.checked { 
+            background: #667eea; 
+            color: white; 
+            border-color: #667eea; 
+        }
+        .option.selected .checkbox, .option.selected .radio { 
+            background: #667eea; 
+            color: white; 
+            border-color: #667eea; 
+        }
+        
+        .question-type-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+            margin-left: 15px;
+        }
+        .question-type-badge.single-choice {
+            background: #48bb78;
+        }
+        .question-type-badge.multiple-choice {
+            background: #ed8936;
+        }
+        
+        .btn-disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed !important; 
+        }
+        .btn-disabled:hover { 
+            background: #667eea !important; 
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .header { padding: 20px; }
+            .card { padding: 20px; }
+            .controls { flex-direction: column; gap: 15px; }
+            .btn { width: 100%; }
+            .mode-selection { grid-template-columns: 1fr; }
+            .exam-info { flex-direction: column; align-items: flex-start; gap: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- 标题 -->
+            <div class="header">
+                <h1>📅 穆桥销售测验系统</h1>
+                <p>医药代表每日测验平台</p>
+            </div>
+
+            <!-- 每日测验入口 -->
+            <div v-if="currentView === 'daily-home'" class="card">
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div style="font-size: 72px; margin-bottom: 20px;">📅</div>
+                    <h2 style="color: #4a5568; margin-bottom: 15px;">每日测验</h2>
+                    <p style="color: #718096; margin-bottom: 30px; font-size: 16px;">
+                        每天3道专业题目，10分钟限时答题<br>
+                        开放时间：{{ dailyExamTime }}
+                    </p>
+                    
+                    <div v-if="!isExamTimeActive" style="background: #fed7d7; color: #c53030; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        ⏰ 当前不在考试时间内，请在 {{ dailyExamTime }} 时间段内参加测验
+                    </div>
+                    
+                    <button 
+                        class="btn btn-success" 
+                        @click="startDailyExam"
+                        :disabled="!isExamTimeActive"
+                        style="font-size: 18px; padding: 15px 40px;"
+                    >
+                        {{ isExamTimeActive ? '🚀 开始今日测验' : '⏰ 等待开放时间' }}
+                    </button>
+                    
+                    <div v-if="todayExamRecord" style="margin-top: 30px; padding: 20px; background: #f0fff4; border-radius: 8px;">
+                        <h4 style="color: #38a169; margin-bottom: 10px;">✅ 今日已完成测验</h4>
+                        <p style="color: #4a5568;">
+                            得分：{{ todayExamRecord.score }}分 | 
+                            用时：{{ formatDuration(todayExamRecord.duration) }} |
+                            答对：{{ todayExamRecord.correctCount }}/{{ todayExamRecord.totalQuestions }}题
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- 考试进行中 -->
+            <div v-if="currentView === 'exam-in-progress'" class="card">
+                <!-- 进度条 -->
+                <div class="progress-bar">
+                    <div class="progress-fill" :style="{width: progressPercent + '%'}"></div>
+                </div>
+                
+                <!-- 考试信息 -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                    <span>第 {{ currentQuestionIndex + 1 }} / {{ questions.length }} 题</span>
+                    <div class="timer">⏰ {{ formatTime(timeRemaining) }}</div>
+                </div>
+
+                <!-- 题目内容 -->
+                <div v-if="currentQuestion">
+                    <div class="question">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <strong>{{ currentQuestion.question }}</strong>
+                            <span class="question-type-badge" 
+                                  :class="currentQuestion && currentQuestion.type === 'multiple' ? 'multiple-choice' : 'single-choice'">
+                                {{ currentQuestion && currentQuestion.type === 'multiple' ? '多选题' : '单选题' }}
+                            </span>
+                        </div>
+                        <div v-if="currentQuestion && currentQuestion.type === 'multiple'" 
+                             style="color: #718096; font-size: 14px; margin-bottom: 15px;">
+                            请选择所有正确答案
+                        </div>
+                    </div>
+                    
+                    <div class="options">
+                        <!-- 选项A -->
+                        <div v-if="currentQuestion && currentQuestion.optionA"
+                             class="option"
+                             :class="{ selected: isOptionSelected('A') }"
+                             @click="selectAnswer('A')">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div v-if="currentQuestion && currentQuestion.type === 'multiple'" 
+                                     class="checkbox"
+                                     :class="{ checked: isOptionSelected('A') }">
+                                    ✓
+                                </div>
+                                <div v-else-if="currentQuestion" 
+                                     class="radio"
+                                     :class="{ checked: isOptionSelected('A') }">
+                                    <span v-if="isOptionSelected('A')" style="font-size: 8px;">●</span>
+                                </div>
+                                <div>
+                                    <strong>A.</strong> {{ currentQuestion.optionA }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 选项B -->
+                        <div v-if="currentQuestion && currentQuestion.optionB"
+                             class="option"
+                             :class="{ selected: isOptionSelected('B') }"
+                             @click="selectAnswer('B')">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div v-if="currentQuestion && currentQuestion.type === 'multiple'" 
+                                     class="checkbox"
+                                     :class="{ checked: isOptionSelected('B') }">
+                                    ✓
+                                </div>
+                                <div v-else-if="currentQuestion" 
+                                     class="radio"
+                                     :class="{ checked: isOptionSelected('B') }">
+                                    <span v-if="isOptionSelected('B')" style="font-size: 8px;">●</span>
+                                </div>
+                                <div>
+                                    <strong>B.</strong> {{ currentQuestion.optionB }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 选项C -->
+                        <div v-if="currentQuestion && currentQuestion.optionC"
+                             class="option"
+                             :class="{ selected: isOptionSelected('C') }"
+                             @click="selectAnswer('C')">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div v-if="currentQuestion && currentQuestion.type === 'multiple'" 
+                                     class="checkbox"
+                                     :class="{ checked: isOptionSelected('C') }">
+                                    ✓
+                                </div>
+                                <div v-else-if="currentQuestion" 
+                                     class="radio"
+                                     :class="{ checked: isOptionSelected('C') }">
+                                    <span v-if="isOptionSelected('C')" style="font-size: 8px;">●</span>
+                                </div>
+                                <div>
+                                    <strong>C.</strong> {{ currentQuestion.optionC }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 选项D -->
+                        <div v-if="currentQuestion && currentQuestion.optionD"
+                             class="option"
+                             :class="{ selected: isOptionSelected('D') }"
+                             @click="selectAnswer('D')">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div v-if="currentQuestion && currentQuestion.type === 'multiple'" 
+                                     class="checkbox"
+                                     :class="{ checked: isOptionSelected('D') }">
+                                    ✓
+                                </div>
+                                <div v-else-if="currentQuestion" 
+                                     class="radio"
+                                     :class="{ checked: isOptionSelected('D') }">
+                                    <span v-if="isOptionSelected('D')" style="font-size: 8px;">●</span>
+                                </div>
+                                <div>
+                                    <strong>D.</strong> {{ currentQuestion.optionD }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 控制按钮 -->
+                <div class="controls">
+                    <button 
+                        class="btn btn-primary" 
+                        @click="previousQuestion"
+                        :disabled="currentQuestionIndex === 0"
+                    >
+                        上一题
+                    </button>
+                    
+                    <span>{{ answeredCount }} / {{ questions.length }} 已答</span>
+                    
+                    <button 
+                        v-if="currentQuestionIndex < questions.length - 1"
+                        class="btn btn-primary" 
+                        @click="nextQuestion"
+                    >
+                        下一题
+                    </button>
+                    
+                    <button 
+                        v-else
+                        class="btn btn-success" 
+                        @click="finishExam"
+                        :disabled="answeredCount === 0"
+                    >
+                        提交{{ selectedMode === 'formal' ? '考试' : '练习' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- 考试结果 -->
+            <div v-if="currentView === 'exam-result'" class="card result-card">
+                <h2>🎉 {{ selectedMode === 'formal' ? '考试完成' : '练习完成' }}</h2>
+                <div class="score">{{ examResult.score }}分</div>
+                <p>正确率: {{ Math.round(examResult.score) }}%</p>
+                <p>答对 {{ examResult.correctCount }} / {{ examResult.totalQuestions }} 题</p>
+                <p v-if="selectedMode === 'formal'">用时: {{ formatTime(examDuration) }}</p>
+                
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" @click="backToModeSelection">
+                        返回首页
+                    </button>
+                    <button class="btn btn-success" @click="startNewExam">
+                        再次测验
+                    </button>
+                    <button class="btn btn-primary" @click="showAnswerReview">
+                        📝 {{ showAnswers ? '隐藏答案' : '查看答案' }}
+                    </button>
+                    <button class="btn btn-primary" 
+                            @click="generateAIReport" 
+                            :disabled="generatingReport || aiReport"
+                            :class="{ 'btn-disabled': generatingReport || aiReport }">
+                        🤖 {{ aiReport ? '已生成报告' : generatingReport ? '生成中...' : 'AI报告' }}
+                    </button>
+                </div>
+
+                <!-- 答案解析 -->
+                <div v-if="showAnswers" class="answer-review">
+                    <h3 style="margin-bottom: 20px; text-align: left;">📝 答案解析</h3>
+                    <div v-for="(question, index) in questions" :key="index" class="answer-item">
+                        <div class="answer-question">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                <span>{{ index + 1 }}. {{ question.question }}</span>
+                                <span class="question-type-badge" :class="question.type === 'multiple' ? 'multiple-choice' : 'single-choice'">
+                                    {{ question.type === 'multiple' ? '多选题' : '单选题' }}
+                                </span>
+                            </div>
+                            <div style="margin-bottom: 15px;">
+                                <strong style="color: #48bb78;">正确答案：{{ question.answer }}</strong>
+                                <span style="margin-left: 20px; color: #666;">
+                                    你的答案：{{ userAnswers[index] || '未作答' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="answer-options">
+                            <!-- 选项A -->
+                            <div v-if="question.optionA" 
+                                 class="answer-option"
+                                 :class="getAnswerOptionClass(question, 'A', userAnswers[index])">
+                                <strong>A.</strong> {{ question.optionA }}
+                                <span v-if="(question.answer || '').includes('A')"> ✓ 正确答案</span>
+                                <span v-if="(userAnswers[index] || '').includes('A') && !(question.answer || '').includes('A')"> ✗ 你的答案</span>
+                                <span v-if="(userAnswers[index] || '').includes('A') && (question.answer || '').includes('A')"> ✓ 你的正确选择</span>
+                            </div>
+                            
+                            <!-- 选项B -->
+                            <div v-if="question.optionB" 
+                                 class="answer-option"
+                                 :class="getAnswerOptionClass(question, 'B', userAnswers[index])">
+                                <strong>B.</strong> {{ question.optionB }}
+                                <span v-if="(question.answer || '').includes('B')"> ✓ 正确答案</span>
+                                <span v-if="(userAnswers[index] || '').includes('B') && !(question.answer || '').includes('B')"> ✗ 你的答案</span>
+                                <span v-if="(userAnswers[index] || '').includes('B') && (question.answer || '').includes('B')"> ✓ 你的正确选择</span>
+                            </div>
+                            
+                            <!-- 选项C -->
+                            <div v-if="question.optionC" 
+                                 class="answer-option"
+                                 :class="getAnswerOptionClass(question, 'C', userAnswers[index])">
+                                <strong>C.</strong> {{ question.optionC }}
+                                <span v-if="(question.answer || '').includes('C')"> ✓ 正确答案</span>
+                                <span v-if="(userAnswers[index] || '').includes('C') && !(question.answer || '').includes('C')"> ✗ 你的答案</span>
+                                <span v-if="(userAnswers[index] || '').includes('C') && (question.answer || '').includes('C')"> ✓ 你的正确选择</span>
+                            </div>
+                            
+                            <!-- 选项D -->
+                            <div v-if="question.optionD" 
+                                 class="answer-option"
+                                 :class="getAnswerOptionClass(question, 'D', userAnswers[index])">
+                                <strong>D.</strong> {{ question.optionD }}
+                                <span v-if="(question.answer || '').includes('D')"> ✓ 正确答案</span>
+                                <span v-if="(userAnswers[index] || '').includes('D') && !(question.answer || '').includes('D')"> ✗ 你的答案</span>
+                                <span v-if="(userAnswers[index] || '').includes('D') && (question.answer || '').includes('D')"> ✓ 你的正确选择</span>
+                            </div>
+                        </div>
+                        <div v-if="question.explanation" class="answer-explanation">
+                            <strong>💡 解析：</strong>{{ question.explanation }}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- AI报告 - 独立显示区域 -->
+            <div v-if="aiReport || generatingReport" class="card result-card">
+                <div class="ai-report">
+                    <h3 style="margin-bottom: 15px;">🤖 AI学习报告</h3>
+                    <div v-if="generatingReport" class="ai-loading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 15px;">AI正在分析你的答题情况，生成个性化学习报告...</p>
+                    </div>
+                    <div v-else>
+                        {{ aiReport }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentView: 'daily-home', // daily-home, exam-in-progress, exam-result
+                    selectedMode: 'daily', // 默认每日测验模式
+                    availableExams: [],
+                    selectedExam: null,
+                    loadingExams: false,
+                    // 每日测验相关
+                    dailyExamTime: '08:00 - 20:00',
+                    isExamTimeActive: true,
+                    todayExamRecord: null,
+                    practiceSettings: {
+                        questionCount: 5,
+                        duration: 0
+                    },
+                    
+                    // 考试数据
+                    questions: [],
+                    currentQuestionIndex: 0,
+                    userAnswers: {},
+                    examStartTime: null,
+                    examDuration: 0,
+                    timeRemaining: 20 * 60,
+                    timer: null,
+                    examResult: null,
+                    
+                    // 答案和AI报告
+                    showAnswers: false,
+                    aiReport: null,
+                    generatingReport: false,
+                    
+                    apiBase: '/api'
+                }
+            },
+            computed: {
+                currentQuestion() {
+                    return this.questions[this.currentQuestionIndex];
+                },
+                progressPercent() {
+                    return ((this.currentQuestionIndex + 1) / this.questions.length) * 100;
+                },
+                answeredCount() {
+                    return Object.keys(this.userAnswers).length;
+                }
+            },
+            async mounted() {
+                await this.initializeDailyExam();
+            },
+            methods: {
+                // 初始化每日测验
+                async initializeDailyExam() {
+                    try {
+                        // 获取每日考试配置
+                        const configResponse = await axios.get(`${this.apiBase}/daily-exam-config`);
+                        const config = configResponse.data.config;
+                        
+                        this.dailyExamTime = `${config.daily_exam_start_time} - ${config.daily_exam_end_time}`;
+                        this.isExamTimeActive = this.isWithinDailyExamTime(config.daily_exam_start_time, config.daily_exam_end_time);
+                        
+                        // 检查今日是否已完成测验
+                        await this.checkTodayExamRecord();
+                        
+                    } catch (error) {
+                        console.error('初始化每日测验失败:', error);
+                    }
+                },
+                
+                async checkTodayExamRecord() {
+                    try {
+                        const today = new Date().toISOString().split('T')[0];
+                        const response = await axios.get(`${this.apiBase}/exam-records`, {
+                            params: { 
+                                exam_type: 'daily_exam',
+                                date: today
+                            }
+                        });
+                        
+                        // 查找今日记录
+                        const todayRecord = response.data.find(record => {
+                            const recordDate = new Date(record.created_at).toISOString().split('T')[0];
+                            return recordDate === today;
+                        });
+                        
+                        this.todayExamRecord = todayRecord;
+                        
+                    } catch (error) {
+                        console.error('检查今日考试记录失败:', error);
+                    }
+                },
+                
+                backToModeSelection() {
+                    this.currentView = 'daily-home';
+                    this.selectedMode = 'daily';
+                    this.selectedExam = null;
+                    this.availableExams = [];
+                },
+                
+                
+                async startDailyExam() {
+                    // 检查每日测验时间
+                    try {
+                        const configResponse = await axios.get(`${this.apiBase}/daily-exam-config`);
+                        const config = configResponse.data.config;
+                        
+                        if (!this.isWithinDailyExamTime(config.daily_exam_start_time, config.daily_exam_end_time)) {
+                            alert(`每日测验时间为 ${config.daily_exam_start_time} - ${config.daily_exam_end_time}，请在开放时间内参加测验`);
+                            return;
+                        }
+                        
+                        this.selectedMode = 'daily';
+                        const response = await axios.get(`${this.apiBase}/questions`, {
+                            params: { 
+                                limit: config.daily_exam_question_count || 3, 
+                                random_sample: true 
+                            }
+                        });
+                        this.questions = response.data;
+                        this.timeRemaining = (config.daily_exam_duration_minutes || 10) * 60; // 10分钟限时
+                        this.startExamSession();
+                    } catch (error) {
+                        alert('加载练习题目失败: ' + error.message);
+                    }
+                },
+                
+                isWithinDailyExamTime(startTime, endTime) {
+                    const now = new Date();
+                    const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                    
+                    const start = startTime.replace(':', '');
+                    const end = endTime.replace(':', '');
+                    const current = currentTime.replace(':', '');
+                    
+                    return current >= start && current <= end;
+                },
+                
+                startExamSession() {
+                    this.currentView = 'exam-in-progress';
+                    this.currentQuestionIndex = 0;
+                    this.userAnswers = {};
+                    this.examStartTime = Date.now();
+                    this.showAnswers = false;
+                    this.aiReport = null;
+                    if (this.selectedMode === 'formal') {
+                        this.startTimer();
+                    }
+                },
+                
+                // 考试控制
+                selectAnswer(option) {
+                    const questionIndex = this.currentQuestionIndex;
+                    const question = this.questions[questionIndex];
+                    
+                    if (question.type === 'multiple') {
+                        // 多选题逻辑
+                        let currentAnswers = this.userAnswers[questionIndex] || '';
+                        
+                        if (currentAnswers.includes(option)) {
+                            // 取消选择
+                            currentAnswers = currentAnswers.replace(option, '');
+                        } else {
+                            // 添加选择，按字母顺序排序
+                            currentAnswers += option;
+                            currentAnswers = currentAnswers.split('').sort().join('');
+                        }
+                        
+                        this.userAnswers[questionIndex] = currentAnswers;
+                    } else {
+                        // 单选题逻辑
+                        this.userAnswers[questionIndex] = option;
+                    }
+                },
+                
+                isOptionSelected(option) {
+                    try {
+                        const questionIndex = this.currentQuestionIndex;
+                        const userAnswer = this.userAnswers[questionIndex] || '';
+                        const question = this.questions[questionIndex];
+                        
+                        if (question && question.type === 'multiple') {
+                            return userAnswer.includes(option);
+                        } else {
+                            return userAnswer === option;
+                        }
+                    } catch (error) {
+                        console.error('isOptionSelected error:', error);
+                        return false;
+                    }
+                },
+                
+                getOptionText(option) {
+                    if (!this.currentQuestion) return '';
+                    const fieldName = 'option' + option; // 构建 optionA, optionB 等
+                    return this.currentQuestion[fieldName] || '';
+                },
+                
+                getQuestionOptionText(question, option) {
+                    if (!question) return '';
+                    const fieldName = 'option' + option; // 构建 optionA, optionB 等
+                    return question[fieldName] || '';
+                },
+                
+                nextQuestion() {
+                    if (this.currentQuestionIndex < this.questions.length - 1) {
+                        this.currentQuestionIndex++;
+                    }
+                },
+                
+                previousQuestion() {
+                    if (this.currentQuestionIndex > 0) {
+                        this.currentQuestionIndex--;
+                    }
+                },
+                
+                async finishExam() {
+                    if (this.answeredCount === 0) {
+                        alert('请至少回答一道题目');
+                        return;
+                    }
+
+                    this.stopTimer();
+                    this.examDuration = Math.floor((Date.now() - this.examStartTime) / 1000);
+                    
+                    // 计算成绩
+                    let correctCount = 0;
+                    for (let i = 0; i < this.questions.length; i++) {
+                        const userAnswer = this.userAnswers[i];
+                        const correctAnswer = this.questions[i].answer;
+                        if (userAnswer === correctAnswer) {
+                            correctCount++;
+                        }
+                    }
+
+                    const score = Math.round((correctCount / this.questions.length) * 100);
+                    
+                    this.examResult = {
+                        score: score,
+                        correctCount: correctCount,
+                        totalQuestions: this.questions.length
+                    };
+
+                    // 提交考试记录
+                    try {
+                        await this.submitExamRecord();
+                    } catch (error) {
+                        console.error('提交考试记录失败:', error);
+                    }
+
+                    this.currentView = 'exam-result';
+                },
+                
+                async submitExamRecord() {
+                    const recordId = `${this.selectedMode}_${Date.now()}`;
+                    const examData = {
+                        id: recordId,
+                        userName: '测试用户',
+                        score: this.examResult.score,
+                        correctCount: this.examResult.correctCount,
+                        totalQuestions: this.examResult.totalQuestions,
+                        duration: this.examDuration,
+                        exam_type: this.selectedMode === 'formal' ? 'formal_exam' : this.selectedMode === 'daily' ? 'daily_exam' : 'practice',
+                        detailed_answers: this.userAnswers
+                    };
+
+                    await axios.post(`${this.apiBase}/exam-records`, examData);
+                },
+                
+                startNewExam() {
+                    this.currentView = 'exam-selection';
+                    this.examResult = null;
+                    this.questions = [];
+                    this.userAnswers = {};
+                },
+                
+                // 工具方法
+                startTimer() {
+                    if ((this.selectedMode === 'formal' || this.selectedMode === 'daily') && this.timeRemaining > 0) {
+                        this.timer = setInterval(() => {
+                            this.timeRemaining--;
+                            if (this.timeRemaining <= 0) {
+                                this.finishExam();
+                            }
+                        }, 1000);
+                    }
+                },
+                
+                stopTimer() {
+                    if (this.timer) {
+                        clearInterval(this.timer);
+                        this.timer = null;
+                    }
+                },
+                
+                formatTime(seconds) {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                },
+                
+                getStatusText(status) {
+                    const statusMap = {
+                        'upcoming': '未开始',
+                        'active': '进行中',
+                        'expired': '已结束'
+                    };
+                    return statusMap[status] || status;
+                },
+                
+                // 答案解析相关
+                showAnswerReview() {
+                    this.showAnswers = !this.showAnswers;
+                },
+                
+                startNewExam() {
+                    // 重置到每日测验首页
+                    this.currentView = 'daily-home';
+                    this.selectedMode = 'daily';
+                    this.selectedExam = null;
+                    this.availableExams = [];
+                    this.questions = [];
+                    this.currentQuestionIndex = 0;
+                    this.userAnswers = {};
+                    this.examResult = null;
+                    this.showAnswers = false;
+                    this.aiReport = null;
+                    this.generatingReport = false;
+                    this.timeRemaining = 10 * 60; // 10分钟
+                    this.stopTimer();
+                    
+                    // 重新检查今日考试记录
+                    this.checkTodayExamRecord();
+                },
+                
+                getAnswerOptionClass(question, option, userAnswer) {
+                    const correctAnswer = question.answer || '';
+                    const isCorrect = correctAnswer.includes(option);
+                    const isUserSelected = (userAnswer || '').includes(option);
+                    
+                    if (isCorrect && isUserSelected) {
+                        return 'correct'; // 正确答案且用户选择了
+                    } else if (isCorrect && !isUserSelected) {
+                        return 'correct'; // 正确答案但用户未选择
+                    } else if (!isCorrect && isUserSelected) {
+                        return 'wrong'; // 错误答案但用户选择了
+                    } else {
+                        return 'not-selected'; // 未选择
+                    }
+                },
+                
+                // AI报告生成
+                async generateAIReport() {
+                    this.generatingReport = true;
+                    try {
+                        // 先保存考试记录
+                        const recordId = `practice_${Date.now()}`;
+                        const examRecordData = {
+                            userName: '测试用户',
+                            score: this.examResult.score,
+                            correctCount: this.examResult.correctCount,
+                            totalQuestions: this.examResult.totalQuestions,
+                            duration: this.examDuration,
+                            exam_type: 'practice',
+                            detailed_answers: this.userAnswers
+                        };
+                        
+                        // 保存记录（不管成功失败都继续生成报告）
+                        try {
+                            await axios.post(`${this.apiBase}/exam-records`, {
+                                id: recordId,
+                                ...examRecordData
+                            });
+                        } catch (recordError) {
+                            console.log('保存记录失败，但继续生成报告:', recordError);
+                        }
+                        
+                        // 构建考试数据用于AI分析
+                        const examData = {
+                            questions: this.questions,
+                            userAnswers: this.userAnswers,
+                            score: this.examResult.score,
+                            correctCount: this.examResult.correctCount,
+                            totalQuestions: this.examResult.totalQuestions,
+                            examType: 'practice'
+                        };
+                        
+                        const response = await axios.post(`${this.apiBase}/generate-ai-report`, {
+                            exam_record_id: recordId,
+                            exam_data: examData
+                        });
+                        
+                        if (response.data.success) {
+                            this.aiReport = response.data.report;
+                        } else {
+                            alert('AI报告生成失败: ' + (response.data.error || '未知错误'));
+                        }
+                        
+                    } catch (error) {
+                        console.error('生成AI报告失败:', error);
+                        alert('AI报告生成失败，请检查API配置');
+                    } finally {
+                        this.generatingReport = false;
+                    }
+                }
+            },
+            beforeUnmount() {
+                this.stopTimer();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

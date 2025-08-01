@@ -1,0 +1,2349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>穆桥销售测验系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #667eea;
+            transition: width 0.3s ease;
+        }
+
+        .question-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+
+        .option.selected {
+            background: #e7f1ff;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .option input {
+            margin-right: 10px;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .timer {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .timer.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .timer.danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .score-excellent {
+            background: #28a745;
+        }
+
+        .score-good {
+            background: #17a2b8;
+        }
+
+        .score-fair {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .score-poor {
+            background: #dc3545;
+        }
+
+        .result-details {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .admin-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            text-decoration: none;
+            color: #333;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .admin-link:hover {
+            background: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .question-text {
+                font-size: 16px;
+            }
+
+            .navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .admin-link {
+                position: static;
+                display: block;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+        }
+
+        .start-screen {
+            text-align: center;
+        }
+
+        .exam-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .exam-info h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .exam-info ul {
+            list-style-position: inside;
+            line-height: 1.8;
+        }
+
+        .question-nav {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .question-nav-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .question-nav-btn.answered {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .question-nav-btn.current {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .question-nav-btn:hover {
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 管理员链接 (仅在非销售模式下显示) -->
+        <a href="admin.html" class="admin-link" id="adminLink">管理后台</a>
+
+        <div class="header">
+            <h1>穆桥销售测验系统</h1>
+            <p id="headerSubtitle">专业知识测试平台</p>
+        </div>
+
+        <!-- 管理后台入口页面 -->
+        <div id="adminEntryScreen" class="card start-screen">
+            <h2>系统管理</h2>
+            
+            <div class="exam-info">
+                <h3>管理功能</h3>
+                <ul>
+                    <li>查看考试记录和统计数据</li>
+                    <li>管理题库和系统配置</li>
+                    <li>导出考试数据报表</li>
+                    <li>配置AI分析接口</li>
+                    <li>监控系统运行状态</li>
+                </ul>
+            </div>
+
+            <div style="margin: 30px 0;">
+                <button class="btn btn-primary" onclick="goToAdmin()" style="font-size: 18px; padding: 15px 30px; margin-right: 15px;">
+                    🔧 进入管理后台
+                </button>
+                <button class="btn btn-secondary" onclick="showExamEntry()" style="font-size: 18px; padding: 15px 30px;">
+                    📝 开始考试
+                </button>
+            </div>
+
+            <div style="margin: 30px 0;">
+                <p><strong>销售人员考试链接：</strong></p>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                    <code id="salesLink" style="word-break: break-all; font-size: 14px; color: #667eea;">
+                        <!-- 链接将通过JavaScript生成 -->
+                    </code>
+                    <button class="btn" onclick="copySalesLink()" style="background: #28a745; color: white; margin-left: 10px; padding: 5px 10px; font-size: 12px;">
+                        复制链接
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 开始考试页面 -->
+        <div id="startScreen" class="card start-screen hidden">
+            <h2>欢迎参加专业知识测试</h2>
+            
+            <div class="exam-info">
+                <h3>考试说明</h3>
+                <ul>
+                    <li>本次考试共 <strong>5</strong> 道题目</li>
+                    <li>考试时间限制：<strong>30分钟</strong></li>
+                    <li>题型包括单选题和多选题</li>
+                    <li>每题分值相等，总分100分</li>
+                    <li>考试过程中可以修改答案</li>
+                    <li>请仔细阅读题目，认真作答</li>
+                </ul>
+            </div>
+
+            <div style="margin: 30px 0;">
+                <p><strong>当前题库共有：</strong><span id="totalQuestionsCount">0</span> 道题目</p>
+            </div>
+
+            <div style="margin: 30px 0;">
+                <div style="margin-bottom: 15px;">
+                    <label for="userName" style="display: block; font-weight: bold; margin-bottom: 8px; color: #333;">
+                        请输入您的姓名（可选）：
+                    </label>
+                    <input type="text" 
+                           id="userName" 
+                           placeholder="请输入您的姓名" 
+                           style="width: 100%; max-width: 300px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;"
+                           maxlength="20">
+                </div>
+                <p style="font-size: 14px; color: #666; margin: 0;">
+                    <i class="fas fa-info-circle"></i> 
+                    填写姓名便于后台管理员查看考试记录和成绩统计
+                </p>
+            </div>
+
+            <button class="btn btn-primary" onclick="startExam()" style="font-size: 18px; padding: 15px 30px; margin-right: 15px;">
+                开始考试
+            </button>
+            <button class="btn btn-secondary" onclick="backToAdminEntry()" id="backToAdminBtn" style="font-size: 18px; padding: 15px 30px;">
+                返回管理
+            </button>
+        </div>
+
+        <!-- 考试进行页面 -->
+        <div id="examScreen" class="hidden">
+            <!-- 进度条 -->
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+
+            <!-- 考试信息栏 -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap;">
+                <div class="timer" id="timer">30:00</div>
+                <div style="font-size: 14px; color: #666;">
+                    题目 <span id="currentQuestionNum">1</span> / <span id="totalQuestions">5</span>
+                </div>
+            </div>
+
+            <!-- 题目导航 -->
+            <div class="card">
+                <h4 style="margin-bottom: 15px;">答题进度</h4>
+                <div class="question-nav" id="questionNav">
+                    <!-- 题目导航按钮将在这里生成 -->
+                </div>
+            </div>
+
+            <!-- 题目卡片 -->
+            <div class="card">
+                <div class="question-card" id="questionCard">
+                    <!-- 题目内容将在这里显示 -->
+                </div>
+
+                <!-- 导航按钮 -->
+                <div class="navigation">
+                    <button class="btn btn-secondary" id="prevBtn" onclick="previousQuestion()">上一题</button>
+                    <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">下一题</button>
+                    <button class="btn btn-success hidden" id="submitBtn" onclick="submitExam()">提交考试</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 考试结果页面 -->
+        <div id="resultScreen" class="hidden">
+            <div class="card text-center">
+                <h2>考试完成</h2>
+                
+                <div class="score-circle" id="scoreCircle">
+                    <span id="scoreText">0分</span>
+                </div>
+
+                <div id="scoreMessage" style="font-size: 18px; margin: 20px 0;"></div>
+
+                <div class="result-details">
+                    <h4 style="margin-bottom: 15px;">考试详情</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; text-align: center;">
+                        <div>
+                            <div style="font-size: 20px; font-weight: bold; color: #28a745;" id="correctCount">0</div>
+                            <div style="font-size: 12px; color: #666;">答对题数</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 20px; font-weight: bold; color: #dc3545;" id="wrongCount">0</div>
+                            <div style="font-size: 12px; color: #666;">答错题数</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 20px; font-weight: bold; color: #667eea;" id="examTime">0分钟</div>
+                            <div style="font-size: 12px; color: #666;">用时</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI解析报告 -->
+                <div id="aiReportSection" class="hidden" style="margin-top: 30px; text-align: left;">
+                    <h4 style="margin-bottom: 15px; text-align: center; color: #667eea;">🤖 AI智能分析报告</h4>
+                    <div id="aiReportContent" style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #667eea; line-height: 1.6;">
+                        <div id="aiReportText">正在生成智能分析报告...</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <button class="btn btn-success" onclick="generateAIReport()" style="font-size: 16px; padding: 12px 25px; margin-right: 10px;" id="aiReportBtn">
+                        🤖 生成AI分析报告
+                    </button>
+                    <button class="btn btn-primary" onclick="restartExam()" style="font-size: 16px; padding: 12px 25px; margin-right: 10px;">
+                        重新考试
+                    </button>
+                    <button class="btn btn-secondary" onclick="viewAnswers()" style="font-size: 16px; padding: 12px 25px;">
+                        查看答案
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 答案查看页面 -->
+        <div id="answerScreen" class="hidden">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3>答案解析</h3>
+                    <button class="btn btn-secondary" onclick="backToResult()">返回结果</button>
+                </div>
+                <div id="answerList">
+                    <!-- 答案解析将在这里显示 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    <script>
+// === 内嵌数据 (无需外部文件) ===
+const EMBEDDED_QUESTIONS = {
+  "version": 2,
+  "lastUpdate": "2025-07-23T03:14:09.237Z",
+  "totalQuestions": 54,
+  "categories": [
+    "疾病",
+    "指南",
+    "ASM",
+    "开浦兰",
+    "维派特",
+    "优普洛"
+  ],
+  "maintainer": "管理员",
+  "questions": [
+    {
+      "category": "疾病",
+      "type": "single",
+      "question": "按照癫痫发作类型的分类中，发作比例最高的是？",
+      "optionA": "全面性发作",
+      "optionB": "局灶性发作",
+      "optionC": "癫痫性痉挛",
+      "optionD": "反射性发作",
+      "answer": "B",
+      "explanation": "",
+      "questionId": 1
+    },
+    {
+      "category": "疾病",
+      "type": "multiple",
+      "question": "女性癫痫患者选择抗发作药物时需要注意哪些问题",
+      "optionA": "女性患者尤其关注药物对容貌的影响",
+      "optionB": "女性患者特殊的生理特点：月经，激素分泌等",
+      "optionC": "女性患者需面对生育问题",
+      "optionD": "女性患者肝肾代谢障碍",
+      "answer": "ABC",
+      "explanation": "",
+      "questionId": 2
+    },
+    {
+      "category": "疾病",
+      "type": "multiple",
+      "question": "婴幼儿及儿童癫痫患者选择抗发作药物时需要注意哪些问题",
+      "optionA": "婴幼儿肝脏和肾脏功能发育尚未完全成熟",
+      "optionB": "儿童正处于生长发育和学习的重要阶段",
+      "optionC": "儿童生长发育快，在标准体重范围内应按公斤体重计算给药量",
+      "optionD": "尤其关注药物\r\n对容貌的影响",
+      "answer": "ABC",
+      "explanation": "",
+      "questionId": 3
+    },
+    {
+      "category": "疾病",
+      "type": "single",
+      "question": "癫痫异常放电在发作初期就同时累及了双侧大脑半球，运动症状和发作的脑电图变化均为双侧性的是：",
+      "optionA": "局灶性发作进展为双侧强直-阵挛",
+      "optionB": "反射性发作",
+      "optionC": "局灶性发作",
+      "optionD": "全面性发作",
+      "answer": "D",
+      "explanation": "",
+      "questionId": 4
+    },
+    {
+      "category": "指南",
+      "type": "single",
+      "question": "根据卒中后癫痫（PSE）诊治的中国专家共识，加巴喷丁、（）、拉莫三嗪等不良反应发生率低，与抗凝药或抗血小板药物之间无显著相互作用，对血脂影响小，推荐作为PSE首选用药",
+      "optionA": "奥卡西平",
+      "optionB": "丙戊酸钠",
+      "optionC": "左乙拉西坦",
+      "optionD": "苯妥英钠",
+      "answer": "C",
+      "explanation": "",
+      "questionId": 5
+    },
+    {
+      "category": "指南",
+      "type": "single",
+      "question": "根据卒中后癫痫诊治的中国专家共识，最新有研究显示静脉使用（）在控制非惊厥性癫痫持续状态（NCSE）时显示出良好的安全性和有效性，推荐作为PSE患者NCSE的一线用药",
+      "optionA": "拉考沙胺",
+      "optionB": "左乙拉西坦",
+      "optionC": "唑吡坦",
+      "optionD": "苯巴比妥",
+      "answer": "A",
+      "explanation": "",
+      "questionId": 6
+    },
+    {
+      "category": "指南",
+      "type": "single",
+      "question": "（）治疗是最重要、最基本的治疗，也是大部分癫痫患者的首选治疗方式。",
+      "optionA": "抗癫痫发作药",
+      "optionB": "外科治疗",
+      "optionC": "生酮饮食",
+      "optionD": "物理治疗",
+      "answer": "A",
+      "explanation": "",
+      "questionId": 7
+    },
+    {
+      "category": "指南",
+      "type": "single",
+      "question": "抗癫痫发作药物不良反应管理指南 （2023）提出：4项队列研究结果表明拉莫三嗪和（） 是 目 前 认 为 妊 娠 期 服 用 较 为 安 全 的ASM（证据级别Ⅲ级）",
+      "optionA": "奥卡西平",
+      "optionB": "拉莫三嗪",
+      "optionC": "左乙拉西坦",
+      "optionD": "拉考沙胺",
+      "answer": "C",
+      "explanation": "",
+      "questionId": 8
+    },
+    {
+      "category": "指南",
+      "type": "single",
+      "question": "2022版癫痫伴抑郁诊断治疗的中国专家共识明确说明：哪种抗癫痫药对抑郁有正性作用",
+      "optionA": "拉考沙胺",
+      "optionB": "巴比妥类",
+      "optionC": "托吡酯",
+      "optionD": "左乙拉西坦",
+      "answer": "A",
+      "explanation": "",
+      "questionId": 9
+    },
+    {
+      "category": "指南",
+      "type": "multiple",
+      "question": "中国老年癫痫患者管理专家共识推荐：对合并有严重心脑血管基础病的老年癫痫患者,慎重使用钠通道阻滞剂和丙戊酸,可考虑选择(Ⅱ级证据,B级推荐)",
+      "optionA": "托吡酯",
+      "optionB": "拉莫三嗪",
+      "optionC": "左乙拉西坦",
+      "optionD": "拉考沙胺",
+      "answer": "ACD",
+      "explanation": "",
+      "questionId": 10
+    },
+    {
+      "category": "指南",
+      "type": "single",
+      "question": "强直-阵挛性癫痫持续（）分钟即为癫痫持续状态",
+      "optionA": "3分钟",
+      "optionB": "5分钟",
+      "optionC": "10分钟",
+      "optionD": "30分钟",
+      "answer": "B",
+      "explanation": "",
+      "questionId": 11
+    },
+    {
+      "category": "指南",
+      "type": "multiple",
+      "question": "根据2023版临床诊疗指南癫痫分册，以下属于惊厥性癫痫持续状态的二线治疗药物有",
+      "optionA": "咪达唑仑",
+      "optionB": "地西泮",
+      "optionC": "丙戊酸",
+      "optionD": "左乙拉西坦",
+      "answer": "CD",
+      "explanation": "",
+      "questionId": 12
+    },
+    {
+      "category": "指南",
+      "type": "multiple",
+      "question": "按照2023版临床诊疗指南癫痫病分册，左乙拉西坦是（）发作类型的一线药物和添加药物？",
+      "optionA": "全面性强直-阵挛发作",
+      "optionB": "强直或失张力发作",
+      "optionC": "肌阵挛发作",
+      "optionD": "局灶性发作",
+      "answer": "ACD",
+      "explanation": "",
+      "questionId": 13
+    },
+    {
+      "category": "ASM",
+      "type": "multiple",
+      "question": "奥卡西平严重的不良反应包括",
+      "optionA": "皮疹",
+      "optionB": "Stevens-Johnson 综合征",
+      "optionC": "携带HLA-B*1502等位基因患者皮肤反应风险增加",
+      "optionD": "肾脏疾病",
+      "answer": "ABCD",
+      "explanation": "",
+      "questionId": 14
+    },
+    {
+      "category": "ASM",
+      "type": "single",
+      "question": "伴发肝功能损害的癫痫患者首选抗痫药物是：",
+      "optionA": "丙戊酸钠",
+      "optionB": "奥卡西平",
+      "optionC": "开浦兰",
+      "optionD": "拉莫三嗪",
+      "answer": "C",
+      "explanation": "",
+      "questionId": 15
+    },
+    {
+      "category": "ASM",
+      "type": "multiple",
+      "question": "联合用药时要注意药物间相互作用，下面哪种药不是肝酶诱导剂：",
+      "optionA": "OXC",
+      "optionB": "CBZ",
+      "optionC": "LEV",
+      "optionD": "LCM",
+      "answer": "CD",
+      "explanation": "",
+      "questionId": 16
+    },
+    {
+      "category": "ASM",
+      "type": "multiple",
+      "question": "奥卡西平可能会加重以下哪些类型的全面性发作加重",
+      "optionA": "全面强直阵挛",
+      "optionB": "强直或失张力",
+      "optionC": "失神发作",
+      "optionD": "肌阵挛发作",
+      "answer": "ABCD",
+      "explanation": "",
+      "questionId": 17
+    },
+    {
+      "category": "ASM",
+      "type": "multiple",
+      "question": "奥卡西平可能会与以下哪些老年患者常用药物产生相互作用",
+      "optionA": "雌二醇",
+      "optionB": "乙炔雌二醇",
+      "optionC": "舍曲林",
+      "optionD": "辛伐他汀",
+      "answer": "ABCD",
+      "explanation": "",
+      "questionId": 18
+    },
+    {
+      "category": "ASM",
+      "type": "single",
+      "question": "大规模研究显示左乙拉西坦的先天畸形发生低，丙戊酸先天畸形发生率高达（）%​",
+      "optionA": "0.028",
+      "optionB": "0.037",
+      "optionC": "0.056",
+      "optionD": "0.103",
+      "answer": "D",
+      "explanation": "",
+      "questionId": 19
+    },
+    {
+      "category": "ASM",
+      "type": "multiple",
+      "question": "丙戊酸可能会与以下哪些老年患者常用药物产生相互作用",
+      "optionA": "阿司匹林",
+      "optionB": "华法林",
+      "optionC": "利培酮",
+      "optionD": "西酞普兰",
+      "answer": "ABCD",
+      "explanation": "",
+      "questionId": 20
+    },
+    {
+      "category": "ASM",
+      "type": "multiple",
+      "question": "以下哪些属于第三代ASMs",
+      "optionA": "乙琥胺",
+      "optionB": "唑尼沙胺",
+      "optionC": "拉考沙胺",
+      "optionD": "吡仑帕奈",
+      "answer": "CD",
+      "explanation": "",
+      "questionId": 21
+    },
+    {
+      "category": "ASM",
+      "type": "multiple",
+      "question": "服用AEDs，尤其具有酶诱导作用的AEDs女性患者应该：",
+      "optionA": "补充Vit D和钙剂",
+      "optionB": "增加日光浴",
+      "optionC": "戒烟",
+      "optionD": "限制咖啡摄入",
+      "answer": "ABCD",
+      "explanation": "",
+      "questionId": 22
+    },
+    {
+      "category": "开浦兰",
+      "type": "single",
+      "question": "左乙拉西坦适合老年患者使用，因为如下特点",
+      "optionA": "疗效确切，安全性好",
+      "optionB": "良好的药代动力学特点，没有临床意义的相互作用",
+      "optionC": "能改善认知和生活质量",
+      "optionD": "以上都是",
+      "answer": "D",
+      "explanation": "",
+      "questionId": 23
+    },
+    {
+      "category": "开浦兰",
+      "type": "single",
+      "question": "使用左乙拉西坦的女性患者哺乳，其药物乳汁/血浆比例",
+      "optionA": "高于安全阈值",
+      "optionB": "在安全阈值之内",
+      "optionC": "尚不明确",
+      "optionD": "与患者年龄相关",
+      "answer": "B",
+      "explanation": "",
+      "questionId": 24
+    },
+    {
+      "category": "开浦兰",
+      "type": "single",
+      "question": "左乙拉西坦适合女性癫痫患者使用，因为如下特点：",
+      "optionA": "对于青春期性激素等影响小",
+      "optionB": "妊娠妇女胎儿致畸风险低",
+      "optionC": "对于体重、骨代谢几乎不影响、长期使用能改善女性生活质量",
+      "optionD": "以上都是",
+      "answer": "D",
+      "explanation": "",
+      "questionId": 25
+    },
+    {
+      "category": "开浦兰",
+      "type": "single",
+      "question": "左乙拉西坦血药浓度达峰时间为？",
+      "optionA": "0.6-1.3h",
+      "optionB": "1.3-2.3h",
+      "optionC": "1.7-2.3h",
+      "optionD": "3h",
+      "answer": "A",
+      "explanation": "",
+      "questionId": 26
+    },
+    {
+      "category": "开浦兰",
+      "type": "multiple",
+      "question": "开浦兰针剂与口服给药如何转换？",
+      "optionA": "可以直接转换",
+      "optionB": "无需逐步增加或减少药物剂量",
+      "optionC": "每日总剂量和给药次数维持不变",
+      "optionD": "需逐步增加或减少药物剂量",
+      "answer": "ABC",
+      "explanation": "",
+      "questionId": 27
+    },
+    {
+      "category": "开浦兰",
+      "type": "multiple",
+      "question": "开浦兰针剂稀释液有",
+      "optionA": "0.9%氯化钠注射液",
+      "optionB": "5%葡萄糖注射液",
+      "optionC": "乳酸林格氏注射液",
+      "optionD": "10%葡萄糖注射液",
+      "answer": "ABC",
+      "explanation": "",
+      "questionId": 28
+    },
+    {
+      "category": "开浦兰",
+      "type": "multiple",
+      "question": "开浦兰针剂在成人及50kg以上儿童患者使用时，起始剂量，最大剂量",
+      "optionA": "500mg bid",
+      "optionB": "1000mg bid",
+      "optionC": "1500mg bid",
+      "optionD": "2000mg bid",
+      "answer": "AC",
+      "explanation": "",
+      "questionId": 29
+    },
+    {
+      "category": "维派特",
+      "type": "single",
+      "question": "我国一项研究表明：患者初始或转换为LCM单药治疗局灶性癫痫、全面性癫痫，在随访12个月后有（）的癫痫儿童患者达到癫痫无发作。​",
+      "optionA": "0.221",
+      "optionB": "0.322",
+      "optionC": "0.465",
+      "optionD": "0.506",
+      "answer": "C",
+      "explanation": "",
+      "questionId": 30
+    },
+    {
+      "category": "维派特",
+      "type": "single",
+      "question": "研究表明：4-17岁儿童维派特联用任意ASM（）周，严重TEAEs发生率及停药率均与安慰剂相当",
+      "optionA": "4",
+      "optionB": "6",
+      "optionC": "10",
+      "optionD": "12",
+      "answer": "C",
+      "explanation": "",
+      "questionId": 31
+    },
+    {
+      "category": "维派特",
+      "type": "single",
+      "question": "部分性发作添加治疗时，基于疗效和耐受性，维派特可（  ）增加剂量50mg，一天2次，直至增至最高剂量（  ）mg/d：",
+      "optionA": "一周，200",
+      "optionB": "两周，200",
+      "optionC": "一周，400",
+      "optionD": "两周，600",
+      "answer": "C",
+      "explanation": "",
+      "questionId": 32
+    },
+    {
+      "category": "维派特",
+      "type": "single",
+      "question": "维派特成人单药治疗时，初始剂量为（）mg,bid；最高剂量每日（）mg",
+      "optionA": "50100",
+      "optionB": "50200",
+      "optionC": "100200",
+      "optionD": "100400",
+      "answer": "D",
+      "explanation": "",
+      "questionId": 33
+    },
+    {
+      "category": "维派特",
+      "type": "single",
+      "question": "维派特≥11kg，<30kg的儿童起始剂量为：",
+      "optionA": "1mg/kg，一日两次",
+      "optionB": "5mg/kg，一日两次",
+      "optionC": "10mg/kg，一日两次",
+      "optionD": "15mg/kg，一日两次",
+      "answer": "A",
+      "explanation": "",
+      "questionId": 34
+    },
+    {
+      "category": "维派特",
+      "type": "single",
+      "question": "对于维派特，以下描述错误的是：",
+      "optionA": "维派特给药剂量的95%通过尿液排泄",
+      "optionB": "轻至中度肝功能受损患者的最高推荐剂量为300mg/日",
+      "optionC": "轻中度肝功能受损的患者无需调整维派特的剂量",
+      "optionD": "未在重度肝功能受损患者中评价拉考沙胺的药代动力学",
+      "answer": "C",
+      "explanation": "",
+      "questionId": 35
+    },
+    {
+      "category": "维派特",
+      "type": "multiple",
+      "question": "老年患者使用维派特，描述正确的是：",
+      "optionA": "研究表明，65岁老年患者与<65岁患者相比，不良反应发生情况相当。",
+      "optionB": "老年患者(＞65岁)一般不需要减量",
+      "optionC": "心脏疾病合并老年患者，治疗需谨慎",
+      "optionD": "老年患者应考虑年龄相关的肾脏清除率下降",
+      "answer": "ABCD",
+      "explanation": "",
+      "questionId": 36
+    },
+    {
+      "category": "维派特",
+      "type": "single",
+      "question": "目前中国申请的维派特口服溶液包装规格为：",
+      "optionA": "50ml:1g",
+      "optionB": "100ml:2g",
+      "optionC": "200ml:2g",
+      "optionD": "400ml:2g",
+      "answer": "C",
+      "explanation": "",
+      "questionId": 37
+    },
+    {
+      "category": "维派特",
+      "type": "single",
+      "question": "维派特两种剂型可等剂量等频率转换，临床使用更简单，50mg片剂=（）ml口服液",
+      "optionA": "1",
+      "optionB": "5",
+      "optionC": "10",
+      "optionD": "50",
+      "answer": "B",
+      "explanation": "",
+      "questionId": 38
+    },
+    {
+      "category": "维派特",
+      "type": "multiple",
+      "question": "目前中国申请的维派特片剂包装规格为：",
+      "optionA": "50mg， 14片",
+      "optionB": "100mg，14片",
+      "optionC": "100mg，28片",
+      "optionD": "100mg，56片",
+      "answer": "ABD",
+      "explanation": "",
+      "questionId": 39
+    },
+    {
+      "category": "ASM",
+      "type": "multiple",
+      "question": "钠离子通道三种生理状态，包括：",
+      "optionA": "失活",
+      "optionB": "关闭",
+      "optionC": "开放",
+      "optionD": "慢失活",
+      "answer": "ABC",
+      "explanation": "",
+      "questionId": 40
+    },
+    {
+      "category": "维派特",
+      "type": "single",
+      "question": "中日注册研究中200mg/d剂量时，维派特皮疹发生率：",
+      "optionA": "0.027",
+      "optionB": "0.017",
+      "optionC": "0",
+      "optionD": "0.015",
+      "answer": "C",
+      "explanation": "",
+      "questionId": 41
+    },
+    {
+      "category": "维派特",
+      "type": "single",
+      "question": "中日注册研究中400mg/d剂量时，维派特皮疹发生率：",
+      "optionA": "2.70%",
+      "optionB": "1.70%",
+      "optionC": "0",
+      "optionD": "1.50%",
+      "answer": "B",
+      "explanation": "",
+      "questionId": 42
+    },
+    {
+      "category": "维派特",
+      "type": "multiple",
+      "question": "华西医院牵头的一项真实世界研究表明：LCM作为添加药物，在第五次随访时（）评分和（）评分显著下降",
+      "optionA": "焦虑",
+      "optionB": "躁狂",
+      "optionC": "痴呆",
+      "optionD": "抑郁",
+      "answer": "AD",
+      "explanation": "",
+      "questionId": 43
+    },
+    {
+      "category": "维派特",
+      "type": "single",
+      "question": "德国一项纳入333参考文献的临床综述表明：相比其他ASM，拉考沙胺对睡眠、行为、精神无负面影响，对（）有改善作用",
+      "optionA": "意识水平",
+      "optionB": "智力",
+      "optionC": "执行力",
+      "optionD": "认知",
+      "answer": "D",
+      "explanation": "",
+      "questionId": 44
+    },
+    {
+      "category": "疾病",
+      "type": "single",
+      "question": "按照Hoehn‐Yahr分级， （）级定义为早期帕金森",
+      "optionA": "0-1.0",
+      "optionB": "0-2.0",
+      "optionC": "1.0-2.5",
+      "optionD": "1.0-3.0",
+      "answer": "C",
+      "explanation": "",
+      "questionId": 45
+    },
+    {
+      "category": "疾病",
+      "type": "multiple",
+      "question": "按照Hoehn‐Yahr分级， （）级定义为双侧肢体受累",
+      "optionA": "0",
+      "optionB": "1.0",
+      "optionC": "2.0",
+      "optionD": "3.0",
+      "answer": "CD",
+      "explanation": "",
+      "questionId": 46
+    },
+    {
+      "category": "指南",
+      "type": "single",
+      "question": "2020《中国帕金森病治疗指南(第四版)》建议帕金森（）诊断，（）治疗",
+      "optionA": "早，早期",
+      "optionB": "早，延迟治疗",
+      "optionC": "早，1.5年后治疗",
+      "optionD": "晚，早期",
+      "answer": "A",
+      "explanation": "",
+      "questionId": 47
+    },
+    {
+      "category": "指南",
+      "type": "multiple",
+      "question": "2020《中国帕金森病治疗指南(第四版)》提出帕金森的药物治疗目标为：",
+      "optionA": "改善症状",
+      "optionB": "避免/降低不良反应",
+      "optionC": "提高生活质量",
+      "optionD": "提高工作能力",
+      "answer": "ABCD",
+      "explanation": "",
+      "questionId": 48
+    },
+    {
+      "category": "优普洛",
+      "type": "multiple",
+      "question": "优普洛贴片的结构包括",
+      "optionA": "背衬层",
+      "optionB": "自粘合基质层",
+      "optionC": "保护层",
+      "optionD": "贴膜层",
+      "answer": "ABC",
+      "explanation": "",
+      "questionId": 49
+    },
+    {
+      "category": "优普洛",
+      "type": "single",
+      "question": "优普洛贴片的厚度为：",
+      "optionA": "30 µm",
+      "optionB": "50 µm",
+      "optionC": "80 µm",
+      "optionD": "100 µm",
+      "answer": "B",
+      "explanation": "",
+      "questionId": 50
+    },
+    {
+      "category": "优普洛",
+      "type": "multiple",
+      "question": "关于优普洛，以下说法正确的是：",
+      "optionA": "24小时药效持续稳定",
+      "optionB": "不通过胃肠道吸收",
+      "optionC": "可显著改善PD患者运动症状",
+      "optionD": "安全性和耐受性良好",
+      "answer": "ABCD",
+      "explanation": "",
+      "questionId": 51
+    },
+    {
+      "category": "优普洛",
+      "type": "single",
+      "question": "协和医院张振馨教授牵头的，针对中国早期人群的RCT研究中演示：优普洛第（）周开始改善症状，第（）周达到最大疗效",
+      "optionA": "2，3",
+      "optionB": "3，3",
+      "optionC": "3，5",
+      "optionD": "3，7",
+      "answer": "D",
+      "explanation": "",
+      "questionId": 52
+    },
+    {
+      "category": "优普洛",
+      "type": "single",
+      "question": "优普洛的适应症为：适用于早期特发性帕金森病症状及体征的单药治疗，或与（）联合用于病程中的各个阶段",
+      "optionA": "普拉克索",
+      "optionB": "司来吉兰",
+      "optionC": "左旋多巴",
+      "optionD": "苯海索",
+      "answer": "C",
+      "explanation": "",
+      "questionId": 53
+    },
+    {
+      "category": "优普洛",
+      "type": "single",
+      "question": "提前6个月使用优普洛治疗，可使患者回到基线时间延长（）年​",
+      "optionA": "半年",
+      "optionB": "1年",
+      "optionC": "2年",
+      "optionD": "3年",
+      "answer": "C",
+      "explanation": "",
+      "questionId": 54
+    }
+  ]
+};
+
+const EMBEDDED_CONFIG = {
+  "version": 1,
+  "lastUpdate": "2025-01-22T00:00:00Z",
+  "apiConfig": {
+    "provider": "qwen",
+    "url": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+    "model": "qwen-turbo",
+    "key": "",
+    "enabled": false
+  },
+  "systemInfo": {
+    "title": "穆桥销售测验系统",
+    "description": "专业销售知识测评平台",
+    "examDuration": 30,
+    "questionsPerExam": 5,
+    "passingScore": 60
+  },
+  "permissions": {
+    "allowAdminEdit": false,
+    "allowApiEdit": false,
+    "allowQuestionEdit": false
+  }
+};
+
+        let questionBank = [];
+        let examRecords = [];
+        let currentExam = {
+            questions: [],
+            answers: [], // 修改为数组
+            startTime: null,
+            endTime: null,
+            currentQuestionIndex: 0
+        };
+        let examTimer = null;
+        let timeRemaining = 30 * 60; // 30分钟，以秒为单位
+        let isSalesMode = false;
+        let useApiMode = false; // Docker部署模式使用API
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', async function() {
+            
+            // 检查URL参数
+            const urlParams = new URLSearchParams(window.location.search);
+            isSalesMode = urlParams.get('mode') === 'sales';
+            useApiMode = urlParams.get('api') === 'true' || window.location.hostname !== 'localhost'; // Docker环境自动使用API
+            
+            if (isSalesMode) {
+                // 销售模式：直接显示考试界面
+                document.getElementById('adminLink').style.display = 'none';
+                document.getElementById('headerSubtitle').textContent = '销售专业知识测试';
+                document.getElementById('adminEntryScreen').style.display = 'none';
+                document.getElementById('startScreen').classList.remove('hidden');
+                document.getElementById('backToAdminBtn').style.display = 'none';
+            } else {
+                // 管理模式：优先显示管理入口
+                document.getElementById('adminLink').style.display = 'block';
+                document.getElementById('adminEntryScreen').style.display = 'block';
+                document.getElementById('startScreen').style.display = 'none';
+                
+                // 生成销售链接
+                generateSalesLink();
+            }
+            
+            try {
+                // 1. 首先加载集中化配置
+                await loadMasterConfig();
+                
+                // 2. 然后加载集中化题库
+                await loadQuestionBank();
+                
+                // 3. 加载考试记录
+                loadExamRecords();
+                
+                // 4. 更新界面
+                updateQuestionCount();
+                
+            } catch (error) {
+                console.error('系统初始化失败:', error);
+            }
+        });
+
+        // 加载题库数据（集中化管理）
+        async function loadQuestionBank() {
+            
+            try {
+                const serverQuestions = await syncFromServer();
+                
+                if (serverQuestions && serverQuestions.length > 0) {
+                    questionBank = serverQuestions;
+                    console.log('✅ 从集中化API获取题库:', questionBank.length, '道题目');
+                } else {
+                    console.error('❌ 无法从集中化API获取题库数据');
+                    questionBank = [];
+                    // 显示错误提示
+                    document.querySelector('.start-section').innerHTML += `
+                        <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <h4>⚠️ 题库加载失败</h4>
+                            <p>无法连接到题库服务器，请联系管理员检查系统配置。</p>
+                            <p>可能的原因：</p>
+                            <ul>
+                                <li>题库服务器未启动</li>
+                                <li>网络连接问题</li>
+                                <li>配置文件错误</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('题库加载失败:', error);
+                questionBank = [];
+            }
+            
+            console.log('题库加载完成，共', questionBank.length, '道题目');
+        }
+        
+        // 加载题库数据 (单文件版本：优先使用内嵌数据)
+        async function syncFromServer() {
+            try {
+                let masterData = null;
+                
+                // 第一优先级：使用内嵌数据
+                if (EMBEDDED_QUESTIONS && EMBEDDED_QUESTIONS.questions) {
+                    console.log('✅ 使用内嵌题库数据:', EMBEDDED_QUESTIONS.questions.length, '道题目');
+                    masterData = EMBEDDED_QUESTIONS;
+                } else {
+                    // 第二优先级：尝试外部API
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const externalApiUrl = urlParams.get('api');
+                    
+                    if (externalApiUrl) {
+                        console.log('🌐 尝试从外部API获取数据:', externalApiUrl);
+                        try {
+                            const response = await fetch(externalApiUrl + '/api/master-questions');
+                            if (response.ok) {
+                                masterData = await response.json();
+                                console.log('✅ 从外部API获取题库:', masterData.questions.length, '道题目');
+                            }
+                        } catch (apiError) {
+                            console.log('❌ 外部API连接失败:', apiError.message);
+                        }
+                    }
+                }
+                
+                if (masterData && masterData.questions) {
+                    // 销售模式下移除答案和解析
+                    if (isSalesMode) {
+                        const questionsWithoutAnswers = masterData.questions.map(q => {
+                            const stripped = { ...q };
+                            delete stripped.answer;
+                            delete stripped.explanation;
+                            return stripped;
+                        });
+                        return questionsWithoutAnswers;
+                    } else {
+                        return masterData.questions;
+                    }
+                }
+                
+                throw new Error('无法获取题库数据');
+            } catch (error) {
+                console.error('题库加载失败:', error.message);
+                return [];
+            }
+        }
+        
+        // 加载配置数据 (单文件版本：优先使用内嵌数据)
+        async function loadMasterConfig() {
+            try {
+                let config = null;
+                
+                // 第一优先级：使用内嵌配置
+                if (EMBEDDED_CONFIG) {
+                    console.log('✅ 使用内嵌配置数据，版本:', EMBEDDED_CONFIG.version);
+                    config = EMBEDDED_CONFIG;
+                } else {
+                    // 第二优先级：尝试外部API
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const externalApiUrl = urlParams.get('api');
+                    
+                    if (externalApiUrl) {
+                        console.log('🌐 尝试从外部API获取配置:', externalApiUrl);
+                        try {
+                            const response = await fetch(externalApiUrl + '/api/master-config');
+                            if (response.ok) {
+                                config = await response.json();
+                                console.log('✅ 从外部API获取配置，版本:', config.version);
+                            }
+                        } catch (apiError) {
+                            console.log('❌ 外部API连接失败:', apiError.message);
+                        }
+                    }
+                }
+                
+                if (config) {
+                    // 保存API配置到localStorage
+                    if (config.apiConfig) {
+                        localStorage.setItem('apiConfig', JSON.stringify(config.apiConfig));
+                    }
+                    return config;
+                }
+                
+                throw new Error('无法获取配置数据');
+            } catch (error) {
+                console.error('配置加载失败:', error.message);
+                return null;
+            }
+        }
+        
+        // 加载默认题库（作为备选）
+
+        // 加载考试记录
+        function loadExamRecords() {
+            const saved = localStorage.getItem('examRecords');
+            if (saved) {
+                try {
+                    examRecords = JSON.parse(saved);
+                } catch (error) {
+                    console.error('考试记录解析失败:', error);
+                    examRecords = [];
+                }
+            }
+        }
+
+        // 保存考试记录 (单文件版本：支持外部API同步)
+        async function saveExamRecord(record) {
+            examRecords.push(record);
+            localStorage.setItem('examRecords', JSON.stringify(examRecords));
+            
+            // 尝试同步到外部API
+            const urlParams = new URLSearchParams(window.location.search);
+            const externalApiUrl = urlParams.get('api');
+            
+            if (externalApiUrl) {
+                try {
+                    console.log('🌐 尝试同步考试记录到外部API:', externalApiUrl);
+                    const response = await fetch(externalApiUrl + '/api/exam-records', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(record)
+                    });
+                    
+                    if (response && response.ok) {
+                        const result = await response.json();
+                        console.log('✅ 考试记录已同步到外部API:', result);
+                        alert('考试完成！数据已同步到管理后台。');
+                        return;
+                    }
+                } catch (error) {
+                    console.warn('❌ 外部API同步失败:', error.message);
+                }
+            }
+            
+            // 如果没有外部API或同步失败，仅本地保存
+            console.log('💾 考试记录已保存在本地');
+            alert('考试完成！数据已保存在本地。');
+        }
+
+        // 更新题库数量显示
+        function updateQuestionCount() {
+            document.getElementById('totalQuestionsCount').textContent = questionBank.length;
+        }
+
+        // 开始考试
+        function startExam() {
+            if (questionBank.length < 5) {
+                alert('题库中题目不足5道，无法开始考试。请联系管理员添加更多题目。');
+                return;
+            }
+
+            // 获取并保存用户姓名
+            const userName = document.getElementById('userName').value.trim();
+            localStorage.setItem('currentUserName', userName);
+
+            // 随机选择5道题目
+            const shuffled = [...questionBank].sort(() => 0.5 - Math.random());
+            currentExam.questions = shuffled.slice(0, 5);
+            currentExam.answers = []; // 修改为数组
+            currentExam.startTime = new Date();
+            currentExam.currentQuestionIndex = 0;
+
+            // 隐藏开始页面，显示考试页面
+            document.getElementById('startScreen').classList.add('hidden');
+            document.getElementById('examScreen').classList.remove('hidden');
+
+            // 初始化考试界面
+            initExamInterface();
+            displayCurrentQuestion();
+            startTimer();
+        }
+
+        // 初始化考试界面
+        function initExamInterface() {
+            document.getElementById('totalQuestions').textContent = currentExam.questions.length;
+            
+            // 创建题目导航
+            const navContainer = document.getElementById('questionNav');
+            navContainer.innerHTML = '';
+            
+            for (let i = 0; i < currentExam.questions.length; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'question-nav-btn';
+                btn.textContent = i + 1;
+                btn.onclick = () => jumpToQuestion(i);
+                navContainer.appendChild(btn);
+            }
+            
+            updateQuestionNavigation();
+        }
+
+        // 显示当前题目
+        function displayCurrentQuestion() {
+            const question = currentExam.questions[currentExam.currentQuestionIndex];
+            const questionCard = document.getElementById('questionCard');
+            
+            console.log('显示题目:', question); // 调试信息
+            
+            const questionNum = currentExam.currentQuestionIndex + 1;
+            document.getElementById('currentQuestionNum').textContent = questionNum;
+            
+            // 构建选项HTML
+            const options = ['A', 'B', 'C', 'D'];
+            let optionsHTML = '';
+            
+            options.forEach(option => {
+                const optionKey = `option${option}`;
+                console.log(`检查选项 ${option}:`, question[optionKey]); // 调试信息
+                
+                if (question[optionKey] && question[optionKey].trim()) {
+                    const inputType = question.type === 'multiple' ? 'checkbox' : 'radio';
+                    const isSelected = currentExam.answers[currentExam.currentQuestionIndex] && 
+                                     currentExam.answers[currentExam.currentQuestionIndex].includes(option);
+                    
+                    optionsHTML += `
+                        <div class="option ${isSelected ? 'selected' : ''}" onclick="selectOption('${option}')">
+                            <input type="${inputType}" name="question_${currentExam.currentQuestionIndex}" 
+                                   value="${option}" ${isSelected ? 'checked' : ''} onchange="selectOption('${option}')">
+                            <span>${option}. ${question[optionKey]}</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            console.log('生成的选项HTML:', optionsHTML); // 调试信息
+            
+            questionCard.innerHTML = `
+                <div class="question-header">
+                    <span><strong>${question.category}</strong> - ${question.type === 'single' ? '单选题' : '多选题'}</span>
+                    <span>题目 ${questionNum}</span>
+                </div>
+                <div class="question-text">${question.question}</div>
+                <div class="options">
+                    ${optionsHTML}
+                </div>
+            `;
+            
+            updateNavigationButtons();
+            updateProgress();
+            updateQuestionNavigation();
+        }
+
+        // 选择选项
+        function selectOption(option) {
+            const questionIndex = currentExam.currentQuestionIndex;
+            const question = currentExam.questions[questionIndex];
+            
+            if (!currentExam.answers[questionIndex]) {
+                currentExam.answers[questionIndex] = [];
+            }
+            
+            if (question.type === 'single') {
+                // 单选题：替换答案
+                currentExam.answers[questionIndex] = [option];
+            } else {
+                // 多选题：切换答案
+                const answers = currentExam.answers[questionIndex];
+                const index = answers.indexOf(option);
+                if (index > -1) {
+                    answers.splice(index, 1);
+                } else {
+                    answers.push(option);
+                }
+            }
+            
+            // 重新显示当前题目以更新选中状态
+            displayCurrentQuestion();
+        }
+
+        // 上一题
+        function previousQuestion() {
+            if (currentExam.currentQuestionIndex > 0) {
+                currentExam.currentQuestionIndex--;
+                displayCurrentQuestion();
+            }
+        }
+
+        // 下一题
+        function nextQuestion() {
+            if (currentExam.currentQuestionIndex < currentExam.questions.length - 1) {
+                currentExam.currentQuestionIndex++;
+                displayCurrentQuestion();
+            }
+        }
+
+        // 跳转到指定题目
+        function jumpToQuestion(index) {
+            currentExam.currentQuestionIndex = index;
+            displayCurrentQuestion();
+        }
+
+        // 更新导航按钮状态
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            prevBtn.disabled = currentExam.currentQuestionIndex === 0;
+            
+            if (currentExam.currentQuestionIndex === currentExam.questions.length - 1) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+            }
+        }
+
+        // 更新进度条
+        function updateProgress() {
+            const progress = ((currentExam.currentQuestionIndex + 1) / currentExam.questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // 更新题目导航状态
+        function updateQuestionNavigation() {
+            const navButtons = document.querySelectorAll('.question-nav-btn');
+            navButtons.forEach((btn, index) => {
+                btn.classList.remove('current', 'answered');
+                
+                if (index === currentExam.currentQuestionIndex) {
+                    btn.classList.add('current');
+                } else if (currentExam.answers[index] && currentExam.answers[index].length > 0) {
+                    btn.classList.add('answered');
+                }
+            });
+        }
+
+        // 开始计时器
+        function startTimer() {
+            examTimer = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(examTimer);
+                    alert('考试时间到，系统将自动提交！');
+                    submitExam();
+                }
+            }, 1000);
+        }
+
+        // 更新计时器显示
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            const timerElement = document.getElementById('timer');
+            timerElement.textContent = timeStr;
+            
+            // 根据剩余时间改变样式
+            timerElement.classList.remove('warning', 'danger');
+            if (timeRemaining <= 300) { // 5分钟
+                timerElement.classList.add('danger');
+            } else if (timeRemaining <= 600) { // 10分钟
+                timerElement.classList.add('warning');
+            }
+        }
+
+        // 提交考试
+        async function submitExam() {
+            console.log('开始提交考试...');
+            
+            try {
+                if (examTimer) {
+                    clearInterval(examTimer);
+                }
+                
+                // 检查是否有未答题目
+                const unansweredQuestions = [];
+                for (let i = 0; i < currentExam.questions.length; i++) {
+                    if (!currentExam.answers[i] || currentExam.answers[i].length === 0) {
+                        unansweredQuestions.push(i + 1);
+                    }
+                }
+                
+                if (unansweredQuestions.length > 0) {
+                    const confirmSubmit = confirm(`还有 ${unansweredQuestions.length} 道题目未作答（题目 ${unansweredQuestions.join(', ')}），确定要提交吗？`);
+                    if (!confirmSubmit) {
+                        // 重新开始计时器
+                        startTimer();
+                        return;
+                    }
+                }
+                
+                currentExam.endTime = new Date();
+                
+                // 显示提交中状态
+                document.getElementById('questionCard').innerHTML = '<div style="text-align: center; padding: 50px;"><h3>正在提交考试...</h3><p>请稍候</p></div>';
+                
+                // 获取答案并计算分数
+                console.log('开始计算分数...');
+                await calculateScoreWithAnswers();
+                console.log('分数计算完成，显示结果...');
+                showResults();
+            } catch (error) {
+                console.error('提交考试时出错:', error);
+                alert('提交考试时出现错误：' + error.message);
+                // 恢复界面
+                location.reload();
+            }
+        }
+
+        // 获取答案并计算分数
+        async function calculateScoreWithAnswers() {
+            console.log('开始计算分数...');
+            let correctCount = 0;
+            let totalQuestions = currentExam.questions.length;
+            
+            try {
+                // 获取完整题库（包含答案）- 单文件版本优先使用内嵌数据
+                let masterData = null;
+                
+                if (EMBEDDED_QUESTIONS && EMBEDDED_QUESTIONS.questions) {
+                    // 使用内嵌数据
+                    masterData = EMBEDDED_QUESTIONS;
+                    console.log('✅ 使用内嵌数据计算分数');
+                } else {
+                    // 尝试外部API
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const externalApiUrl = urlParams.get('api');
+                    
+                    if (externalApiUrl) {
+                        try {
+                            const response = await fetch(externalApiUrl + '/api/master-questions');
+                            if (response.ok) {
+                                masterData = await response.json();
+                                console.log('✅ 使用外部API数据计算分数');
+                            }
+                        } catch (apiError) {
+                            console.log('❌ 外部API连接失败:', apiError.message);
+                        }
+                    }
+                }
+                
+                if (masterData && masterData.questions) {
+                    const questionsWithAnswers = masterData.questions;
+                    
+                    // 根据题目内容匹配答案
+                    currentExam.questions.forEach((examQuestion, index) => {
+                        const userAnswer = currentExam.answers[index] || [];
+                        
+                        // 找到对应的完整题目（含答案）
+                        const fullQuestion = questionsWithAnswers.find(q => q.question === examQuestion.question);
+                        
+                        if (fullQuestion && fullQuestion.answer) {
+                            const correctAnswer = fullQuestion.answer.split('').sort();
+                            const userAnswerSorted = userAnswer.sort();
+                            
+                            // 比较答案
+                            if (JSON.stringify(correctAnswer) === JSON.stringify(userAnswerSorted)) {
+                                correctCount++;
+                            }
+                            
+                            // 将正确答案添加到考试记录中，用于显示
+                            examQuestion.correctAnswer = fullQuestion.answer;
+                            examQuestion.explanation = fullQuestion.explanation || '';
+                        } else {
+                            console.warn('无法找到题目答案:', examQuestion.question);
+                        }
+                    });
+                } else {
+                    throw new Error('无法获取答案数据');
+                }
+            } catch (error) {
+                console.error('获取答案失败:', error);
+                console.log('尝试使用备用评分方案...');
+                
+                // 备用方案：再次尝试获取题库数据
+                try {
+                    let response;
+                    if (useApiMode) {
+                        // API模式：通过服务器API获取数据
+                        const apiUrl = `http://${window.location.hostname}:3001/api/master-questions`;
+                        response = await fetch(apiUrl);
+                    } else {
+                        // 本地模式：直接访问文件
+                        response = await fetch('./data/master-questions.json');
+                    }
+                    
+                    if (response.ok) {
+                        const backupQuestions = await response.json();
+                        
+                        currentExam.questions.forEach((examQuestion, index) => {
+                            const userAnswer = currentExam.answers[index] || [];
+                            const fullQuestion = backupQuestions.questions.find(q => q.question === examQuestion.question);
+                            
+                            if (fullQuestion && fullQuestion.answer) {
+                                const correctAnswer = fullQuestion.answer.split('').sort();
+                                const userAnswerSorted = userAnswer.sort();
+                                
+                                if (JSON.stringify(correctAnswer) === JSON.stringify(userAnswerSorted)) {
+                                    correctCount++;
+                                }
+                                
+                                examQuestion.correctAnswer = fullQuestion.answer;
+                                examQuestion.explanation = fullQuestion.explanation || '';
+                            }
+                        });
+                    } else {
+                        throw new Error('无法加载备用题库');
+                    }
+                } catch (backupError) {
+                    console.error('备用评分也失败:', backupError);
+                    // 最后的备选方案：给予一个合理的分数而不是满分
+                    correctCount = Math.floor(totalQuestions * 0.7); // 给70分
+                    alert('无法连接到评分系统，本次考试将给予70分的默认分数。请联系管理员。');
+                }
+            }
+            
+            const score = Math.round((correctCount / totalQuestions) * 100);
+            const duration = Math.round((currentExam.endTime - currentExam.startTime) / 1000 / 60); // 分钟
+            
+            // 保存考试记录
+            const userName = localStorage.getItem('currentUserName') || '';
+            
+            // 准备详细的答题记录
+            const questionDetails = currentExam.questions.map((question, index) => {
+                const userAnswer = currentExam.answers[index] || [];
+                const correctAnswer = question.correctAnswer || '';
+                const isCorrect = correctAnswer && JSON.stringify(correctAnswer.split('').sort()) === JSON.stringify(userAnswer.sort());
+                
+                return {
+                    questionId: question.questionId || (index + 1), // 记录题库中的题号
+                    question: question.question,
+                    correctAnswer: correctAnswer,
+                    userAnswer: userAnswer,
+                    isCorrect: isCorrect,
+                    category: question.category,
+                    explanation: question.explanation || ''
+                };
+            });
+            
+            const examRecord = {
+                id: 'exam_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                timestamp: Date.now(),
+                date: currentExam.endTime.toISOString(),
+                userName: userName,
+                score: score,
+                correctCount: correctCount,
+                totalQuestions: totalQuestions,
+                duration: duration,
+                questions: questionDetails,
+                isSalesMode: isSalesMode
+            };
+            
+            saveExamRecord(examRecord);
+            
+            currentExam.score = score;
+            currentExam.correctCount = correctCount;
+            currentExam.duration = duration;
+        }
+
+        // 显示考试结果
+        function showResults() {
+            document.getElementById('examScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            
+            const score = currentExam.score;
+            const correctCount = currentExam.correctCount;
+            const wrongCount = currentExam.questions.length - correctCount;
+            const accuracy = Math.round((correctCount / currentExam.questions.length) * 100);
+            
+            // 更新分数显示
+            document.getElementById('scoreText').textContent = score + '分';
+            document.getElementById('correctCount').textContent = correctCount;
+            document.getElementById('wrongCount').textContent = wrongCount;
+            document.getElementById('examTime').textContent = currentExam.duration + '分钟';
+            
+            // 设置分数圆圈颜色和评价
+            const scoreCircle = document.getElementById('scoreCircle');
+            const scoreMessage = document.getElementById('scoreMessage');
+            
+            scoreCircle.classList.remove('score-excellent', 'score-good', 'score-fair', 'score-poor');
+            
+            if (score >= 90) {
+                scoreCircle.classList.add('score-excellent');
+                scoreMessage.textContent = '优秀！专业知识掌握得很好！';
+            } else if (score >= 80) {
+                scoreCircle.classList.add('score-good');
+                scoreMessage.textContent = '良好！继续保持努力！';
+            } else if (score >= 60) {
+                scoreCircle.classList.add('score-fair');
+                scoreMessage.textContent = '及格，但还需要加强学习。';
+            } else {
+                scoreCircle.classList.add('score-poor');
+                scoreMessage.textContent = '需要更多的学习和练习。';
+            }
+        }
+
+        // 重新考试
+        function restartExam() {
+            // 重置所有状态
+            currentExam = {
+                questions: [],
+                answers: [], // 修改为数组
+                startTime: null,
+                endTime: null,
+                currentQuestionIndex: 0
+            };
+            timeRemaining = 30 * 60;
+            
+            if (examTimer) {
+                clearInterval(examTimer);
+            }
+            
+            // 返回开始页面
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('answerScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+        }
+
+        // 查看答案
+        function viewAnswers() {
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('answerScreen').classList.remove('hidden');
+            
+            displayAnswerReview();
+        }
+
+        // 显示答案解析
+        function displayAnswerReview() {
+            const answerList = document.getElementById('answerList');
+            let answersHTML = '';
+            
+            // 销售人员考试完成后也可以查看答案
+            
+            currentExam.questions.forEach((question, index) => {
+                const userAnswer = currentExam.answers[index] || [];
+                const correctAnswer = question.correctAnswer ? question.correctAnswer.split('') : [];
+                const isCorrect = correctAnswer.length > 0 ? JSON.stringify(correctAnswer.sort()) === JSON.stringify(userAnswer.sort()) : false;
+                
+                // 构建选项显示
+                const options = ['A', 'B', 'C', 'D'];
+                let optionsDisplay = '';
+                
+                options.forEach(option => {
+                    const optionKey = `option${option}`;
+                    if (question[optionKey] && question[optionKey].trim()) {
+                        const isUserSelected = userAnswer.includes(option);
+                        const isCorrectOption = correctAnswer.includes(option);
+                        
+                        let optionClass = '';
+                        if (isCorrectOption) {
+                            optionClass = 'color: #28a745; font-weight: bold;';
+                        } else if (isUserSelected) {
+                            optionClass = 'color: #dc3545;';
+                        }
+                        
+                        optionsDisplay += `
+                            <div style="${optionClass}">
+                                ${option}. ${question[optionKey]} 
+                                ${isUserSelected ? '(你的选择)' : ''} 
+                                ${isCorrectOption ? '(正确答案)' : ''}
+                            </div>
+                        `;
+                    }
+                });
+                
+                answersHTML += `
+                    <div style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span><strong>题目 ${index + 1}</strong> (${question.category} - ${question.type === 'single' ? '单选题' : '多选题'})</span>
+                            <span style="color: ${isCorrect ? '#28a745' : '#dc3545'}; font-weight: bold;">
+                                ${isCorrect ? '✓ 正确' : '✗ 错误'}
+                            </span>
+                        </div>
+                        <div style="margin-bottom: 10px;"><strong>题目：</strong>${question.question}</div>
+                        <div style="margin-bottom: 10px;">
+                            ${optionsDisplay}
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <strong>正确答案：</strong>${question.correctAnswer || '未找到答案'}
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <strong>你的答案：</strong>${userAnswer.length > 0 ? userAnswer.join('') : '未作答'}
+                        </div>
+                        ${question.explanation ? `<div style="background: #f8f9fa; padding: 10px; border-radius: 5px;"><strong>解析：</strong>${question.explanation}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            answerList.innerHTML = answersHTML;
+        }
+
+        // 返回结果页面
+        function backToResult() {
+            document.getElementById('answerScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+        }
+
+        // 生成AI分析报告
+        async function generateAIReport() {
+            const aiReportBtn = document.getElementById('aiReportBtn');
+            const aiReportSection = document.getElementById('aiReportSection');
+            const aiReportText = document.getElementById('aiReportText');
+            
+            // 销售人员考试完成后也可以生成AI报告
+            
+            // 显示AI报告区域
+            aiReportSection.classList.remove('hidden');
+            aiReportBtn.disabled = true;
+            aiReportBtn.textContent = '正在生成...';
+            
+            try {
+                // 获取API配置
+                const apiConfig = getApiConfig();
+                
+                if (!apiConfig || !apiConfig.key) {
+                    throw new Error('未配置API密钥，请先在后台管理中配置API设置');
+                }
+                
+                // 准备考试数据
+                const examData = prepareExamDataForAI();
+                
+                if (!examData) {
+                    throw new Error('无法获取考试数据，请重新考试');
+                }
+                
+                // 生成提示词
+                const prompt = generateAIPrompt(examData);
+                
+                // 调用AI API
+                const report = await callQwenAPI(apiConfig, prompt);
+                
+                // 显示报告
+                aiReportText.innerHTML = formatAIReport(report);
+                
+            } catch (error) {
+                console.error('AI报告生成失败:', error);
+                aiReportText.innerHTML = `
+                    <div style="color: #dc3545;">
+                        <strong>AI报告生成失败：</strong>${error.message}<br><br>
+                        <strong>本地分析报告：</strong><br>
+                        ${generateLocalReport()}
+                    </div>
+                `;
+            } finally {
+                aiReportBtn.disabled = false;
+                aiReportBtn.textContent = '🤖 重新生成报告';
+            }
+        }
+
+        // 获取API配置
+        function getApiConfig() {
+            const saved = localStorage.getItem('apiConfig');
+            if (saved) {
+                try {
+                    return JSON.parse(saved);
+                } catch (error) {
+                    console.error('API配置解析失败:', error);
+                }
+            }
+            return null;
+        }
+
+        // 准备考试数据
+        function prepareExamDataForAI() {
+            // 销售人员考试完成后也有答案数据，可以生成AI报告
+            
+            const examData = {
+                score: currentExam.score,
+                correctCount: currentExam.correctCount,
+                totalQuestions: currentExam.questions.length,
+                accuracy: Math.round((currentExam.correctCount / currentExam.questions.length) * 100),
+                duration: currentExam.duration,
+                questions: []
+            };
+
+            currentExam.questions.forEach((question, index) => {
+                const userAnswer = currentExam.answers[index] || [];
+                const correctAnswer = question.correctAnswer ? question.correctAnswer.split('') : [];
+                const isCorrect = correctAnswer.length > 0 ? JSON.stringify(correctAnswer.sort()) === JSON.stringify(userAnswer.sort()) : false;
+                
+                examData.questions.push({
+                    index: index + 1,
+                    category: question.category,
+                    type: question.type,
+                    question: question.question,
+                    options: {
+                        A: question.optionA,
+                        B: question.optionB,
+                        C: question.optionC,
+                        D: question.optionD
+                    },
+                    correctAnswer: question.answer || '不可见',
+                    userAnswer: userAnswer.join('') || '未作答',
+                    isCorrect: isCorrect,
+                    explanation: question.explanation || ''
+                });
+            });
+
+            return examData;
+        }
+
+        // 生成AI提示词
+        function generateAIPrompt(examData) {
+            return `你是一位资深的癫痫领域医学顾问，专门为制药企业销售代表提供专业培训指导。请根据以下癫痫药物专业知识考试结果，生成一份个性化的学习提升报告：
+
+📊 考试概况：
+- 考试得分：${examData.score}分
+- 正确题数：${examData.correctCount}/${examData.totalQuestions}题
+- 答题准确率：${examData.accuracy}%
+- 考试用时：${examData.duration}分钟
+
+📋 详细答题情况：
+${examData.questions.map(q => `
+【题目${q.index}】${q.category}知识 - ${q.type === 'single' ? '单选题' : '多选题'}
+问题：${q.question}
+选项：A.${q.options.A} | B.${q.options.B} | C.${q.options.C} | D.${q.options.D}
+标准答案：${q.correctAnswer} | 你的答案：${q.userAnswer} | ${q.isCorrect ? '✅ 答对了' : '❌ 答错了'}
+${q.explanation ? '要点解析：' + q.explanation : ''}
+`).join('\n')}
+
+🎯 请作为专业的癫痫领域医学顾问，从以下维度为这位销售代表提供专业指导：
+
+1. **专业能力评估**
+   - 基于得分和准确率，评价当前的癫痫药物专业知识水平
+   - 与优秀销售代表的标准对比分析
+
+2. **知识板块分析**
+   - 按药物分类（开浦兰、维派特、优普洛等）和知识类型（疾病机理、用药指南、ASM等）统计掌握情况
+   - 识别强项知识领域和薄弱环节
+
+3. **客户交流影响**
+   - 分析错题可能在实际客户拜访中造成的影响
+   - 评估对医生专业信任度的潜在影响
+
+4. **针对性提升建议**
+   - 为薄弱知识点提供具体的学习重点和方法
+   - 推荐相关的癫痫治疗指南、药物机理、临床研究等学习资源
+   - 建议与医学部门或资深同事的交流重点
+
+5. **实战应用指导**
+   - 如何在客户拜访中运用这些专业知识
+   - 如何用专业知识解答医生的疑问
+   - 如何提升在癫痫专科医生面前的专业形象
+
+⚠️ **重要要求：**
+- 请将分析报告控制在1000-1500字以内
+- 内容详实全面，提供深度分析和具体建议
+- 包含具体的学习计划和实操指导
+
+请用专业但易懂的语言，为这位癫痫药物销售代表提供实用的成长指导，帮助其在专业知识和销售技能上都有所提升。`;
+        }
+
+        // 调用通义千问API
+        async function callQwenAPI(apiConfig, prompt) {
+            const requestData = {
+                model: apiConfig.model,
+                messages: [
+                    {
+                        role: "system",
+                        content: "你是资深的癫痫领域医学顾问，专门为制药企业销售代表提供详实全面的专业培训指导。回复必须控制在1000-1500字以内，提供深度分析和具体的实操建议。"
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                max_tokens: 2500,  // 增加token数量，约1200-1800中文字符
+                temperature: 0.5   // 适中的随机性，保证内容丰富度
+            };
+
+            const response = await fetch(apiConfig.url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + apiConfig.key
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`API请求失败: ${response.status} ${response.statusText} - ${errorText}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.choices && data.choices[0] && data.choices[0].message) {
+                return data.choices[0].message.content;
+            } else {
+                throw new Error('API返回数据格式错误: ' + JSON.stringify(data));
+            }
+        }
+
+        // 格式化AI报告
+        function formatAIReport(report) {
+            // 将换行符转换为HTML
+            return report.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        }
+
+        // 生成本地分析报告
+        function generateLocalReport() {
+            const examData = prepareExamDataForAI();
+            
+            // 按分类统计
+            const categoryStats = {};
+            examData.questions.forEach(q => {
+                if (!categoryStats[q.category]) {
+                    categoryStats[q.category] = { total: 0, correct: 0 };
+                }
+                categoryStats[q.category].total++;
+                if (q.isCorrect) {
+                    categoryStats[q.category].correct++;
+                }
+            });
+
+            let report = `<strong>🏆 癫痫药物专业能力评估:</strong><br>`;
+            report += `本次考试得分 <span style="color: #007bff; font-weight: bold;">${examData.score}分</span>，专业知识准确率 <span style="color: #28a745; font-weight: bold;">${examData.accuracy}%</span>，用时${examData.duration}分钟。<br><br>`;
+            
+            report += `<strong>📊 各知识领域掌握情况:</strong><br>`;
+            Object.entries(categoryStats).forEach(([category, stats]) => {
+                const rate = Math.round((stats.correct / stats.total) * 100);
+                const color = rate >= 80 ? '#28a745' : rate >= 60 ? '#ffc107' : '#dc3545';
+                const icon = rate >= 80 ? '✅' : rate >= 60 ? '⚠️' : '❌';
+                report += `${icon} <strong>${category}知识:</strong> ${stats.correct}/${stats.total}题正确 (<span style="color: ${color};">${rate}%</span>)<br>`;
+            });
+            
+            report += `<br><strong>💡 专业提升建议:</strong><br>`;
+            if (examData.accuracy >= 90) {
+                report += `🎖️ <strong>专业水平优秀！</strong><br>
+                您的癫痫药物专业知识掌握扎实，已达到资深销售代表水平，能够在客户面前展现高度的专业性和权威性。<br><br>
+                <strong>🎯 提升方向：</strong><br>
+                • 持续关注最新的癫痫治疗指南更新和前沿研究进展<br>
+                • 可以担任团队内部培训导师，分享您的专业经验和见解<br>
+                • 重点提升与癫痫专科医生的深度学术交流能力<br>
+                • 关注国际癫痫学会的最新研究动态，提升学术敏感度<br>
+                • 建立与KOL专家的专业关系，参与学术会议和研讨<br><br>
+                <strong>💼 实战应用：</strong><br>
+                • 在客户拜访中可以主动提供专业的治疗建议和方案<br>
+                • 能够解答医生的复杂专业问题，建立权威形象<br>
+                • 可以组织或参与医院的学术讲座，扩大专业影响力`;
+            } else if (examData.accuracy >= 80) {
+                report += `👍 <strong>专业水平良好！</strong><br>
+                您的基础知识掌握较为扎实，在客户面前能够展现良好的专业性，但仍有进步空间。<br><br>
+                <strong>📖 学习重点：</strong><br>
+                • 针对本次考试错题涉及的知识点进行专项深度复习<br>
+                • 加强对薄弱药物品类的系统学习，如开浦兰、维派特、优普洛的深度机理<br>
+                • 多与公司医学部门同事交流，完善专业知识体系<br>
+                • 系统学习癫痫疾病的病理生理机制和最新治疗理念<br><br>
+                <strong>🎯 改进建议：</strong><br>
+                • 建立定期学习计划，每周安排固定时间进行专业知识补充<br>
+                • 参加相关的医学会议和培训，拓宽专业视野<br>
+                • 在客户拜访前，针对具体科室和医生的特点准备专业话题<br>
+                • 积极寻求资深同事的指导和经验分享`;
+            } else if (examData.accuracy >= 60) {
+                report += `📚 <strong>专业基础待提升。</strong><br>
+                您达到了合格线，但专业知识体系需要系统性的强化学习，以提升在客户面前的专业权威性。<br><br>
+                <strong>🔥 紧急学习计划：</strong><br>
+                • 重点复习癫痫疾病的基本机理和各类抗癫痫药物的作用特点<br>
+                • 熟读公司所有产品的说明书，掌握适应症、用法用量、禁忌症<br>
+                • 系统学习最新版癫痫治疗指南的核心内容<br>
+                • 参加公司组织的医学培训，向资深同事请教实战经验<br><br>
+                <strong>📋 具体行动：</strong><br>
+                • 制定为期3个月的系统学习计划，每日至少1小时专业学习<br>
+                • 建立专业知识笔记，梳理核心知识点和常见问题<br>
+                • 在客户拜访中多听多学，观察资深同事的专业表达方式<br>
+                • 定期进行自我测试，巩固学习效果`;
+            } else {
+                report += `⚠️ <strong>专业知识需要重点强化。</strong><br>
+                当前的专业水平可能会影响客户对您的专业信任度，需要立即采取系统性的强化学习措施。<br><br>
+                <strong>🚨 紧急行动计划：</strong><br>
+                • 立即开始系统性的癫痫药物专业知识学习，建议暂停其他非核心工作<br>
+                • 重点掌握公司主要产品的基本信息：适应症、用法用量、注意事项<br>
+                • 学习癫痫疾病的基础知识和基本治疗原则<br>
+                • 熟悉常用的癫痫专业术语和医学表达<br><br>
+                <strong>⏰ 30天冲刺计划：</strong><br>
+                • 第1-10天：专攻产品基础知识，完成所有产品说明书学习<br>
+                • 第11-20天：学习癫痫基础疾病知识和治疗原理<br>
+                • 第21-30天：模拟客户对话，练习专业表达和问题应答<br><br>
+                <strong>🎯 临时策略：</strong><br>
+                • 暂时避免与专业要求较高的癫痫专科医生进行深度交流<br>
+                • 在客户拜访中多采用倾听模式，积累实战经验<br>
+                • 遇到不懂的专业问题，诚实表示会后续跟进，避免错误回答`;
+            }
+
+            return report;
+        }
+
+        // 生成销售链接
+        function generateSalesLink() {
+            const currentUrl = window.location.origin + window.location.pathname;
+            const salesUrl = currentUrl + '?mode=sales';
+            document.getElementById('salesLink').textContent = salesUrl;
+        }
+
+        // 复制销售链接
+        function copySalesLink() {
+            const salesLink = document.getElementById('salesLink').textContent;
+            navigator.clipboard.writeText(salesLink).then(() => {
+                alert('销售链接已复制到剪贴板！');
+            }).catch(() => {
+                // 备用方案
+                const textArea = document.createElement('textarea');
+                textArea.value = salesLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('销售链接已复制到剪贴板！');
+            });
+        }
+
+        // 进入管理后台
+        function goToAdmin() {
+            window.location.href = 'admin.html';
+        }
+
+        // 显示考试入口
+        function showExamEntry() {
+            document.getElementById('adminEntryScreen').style.display = 'none';
+            document.getElementById('startScreen').classList.remove('hidden');
+            document.getElementById('startScreen').style.display = 'block';
+        }
+
+        // 返回管理入口
+        function backToAdminEntry() {
+            if (!isSalesMode) {
+                document.getElementById('startScreen').style.display = 'none';
+                document.getElementById('adminEntryScreen').style.display = 'block';
+            }
+        }
+
+    </script>
+</body>
+</html>

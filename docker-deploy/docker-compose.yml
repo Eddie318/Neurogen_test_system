@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  neurogen-web:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: neurogen-web
+    ports:
+      - "80:80"
+      - "8080:80"  # 备用端口
+    depends_on:
+      - neurogen-api
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    networks:
+      - exam-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/exam.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  neurogen-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: neurogen-api
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./data:/app/data:rw
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+      - NODE_ENV=production
+    networks:
+      - exam-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/master-questions"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  exam-network:
+    driver: bridge

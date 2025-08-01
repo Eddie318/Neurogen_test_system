@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  neurogen-exam-system:
+    build: .
+    container_name: neurogen-exam-system
+    ports:
+      - "80:80"
+      - "8080:80"  # 备用端口
+    volumes:
+      - ./data:/usr/share/nginx/html/data:rw
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    networks:
+      - exam-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/exam.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  exam-network:
+    driver: bridge

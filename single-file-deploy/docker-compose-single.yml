@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  exam-single:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: neurogen-exam-single
+    ports:
+      - "80:80"
+      - "8080:80"  # 备用端口
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

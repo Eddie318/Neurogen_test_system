@@ -4,12 +4,26 @@
 .DS_Store
 Thumbs.db
 
-# 忽略调试工具
+# 忽略调试和测试文件
 *debug*.html
 *test*.html
+*simple*.html
 *proxy*.js
 
 # 忽略临时文件
 *.tmp
 *.bak
 *.backup
+
+# 忽略运行时数据
+logs/
+data/*.log
+
+# 忽略旧版本文件
+initial-questions.json
+questionbank.json
+题库_*.json
+
+# 忽略开发工具
+node_modules/
+npm-debug.log*
