@@ -12,6 +12,206 @@ from ..config import settings
 
 router = APIRouter()
 
+async def _generate_auto_report(exam_record: ExamRecordModel, db: Session):
+    """自动生成AI报告的内部函数"""
+    try:
+        # 获取API配置
+        api_config_record = db.query(SystemConfigModel).filter(
+            SystemConfigModel.key == "api_config"
+        ).first()
+        
+        api_config = None
+        if api_config_record and api_config_record.value:
+            try:
+                api_config = json.loads(api_config_record.value)
+            except:
+                pass
+        
+        # 如果数据库没有配置，使用环境变量
+        if not api_config or not api_config.get('key'):
+            env_api_key = getattr(settings, 'qwen_api_key', '')
+            if not env_api_key:
+                return  # 没有API密钥就跳过
+                
+            api_config = {
+                "provider": "qwen",
+                "url": getattr(settings, 'qwen_api_url', 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation'),
+                "model": getattr(settings, 'qwen_model', 'qwen-turbo'),
+                "key": env_api_key
+            }
+        
+        # 获取题目信息进行专业解析
+        # 优先使用传递的题目数据，如果没有则使用旧方法
+        question_analysis = []
+        
+        # 检查是否有完整的题目数据
+        if hasattr(exam_record, 'questions_data') and exam_record.questions_data:
+            # 使用前端传递的完整题目数据
+            try:
+                questions_data = exam_record.questions_data
+                if isinstance(questions_data, str):
+                    questions_data = json.loads(questions_data)
+                
+                for i, q_data in enumerate(questions_data):
+                    question_analysis.append({
+                        "question": q_data.get("question", ""),
+                        "category": q_data.get("category", ""),
+                        "type": q_data.get("question_type", "single"),
+                        "correct_answer": q_data.get("correct_answer", ""),
+                        "user_answer": q_data.get("user_answer", ""),
+                        "is_correct": q_data.get("is_correct", False),
+                        "explanation": q_data.get("explanation", "")
+                    })
+            except Exception as e:
+                print(f"解析题目数据失败: {e}")
+                # 如果解析失败，使用旧方法
+                question_analysis = []
+        
+        # 如果没有题目数据，使用旧方法（保持兼容性）
+        if not question_analysis:
+            from ..models import Question as QuestionModel
+            detailed_answers = json.loads(exam_record.detailed_answers) if isinstance(exam_record.detailed_answers, str) else exam_record.detailed_answers
+            
+            if detailed_answers:
+                question_ids = list(detailed_answers.keys())
+                questions = db.query(QuestionModel).limit(len(question_ids)).all()
+                
+                for i, (q_key, user_answer) in enumerate(detailed_answers.items()):
+                    if i < len(questions):
+                        q = questions[i]
+                        is_correct = user_answer.upper().strip() == q.answer.upper().strip()
+                        question_analysis.append({
+                            "question": q.question,
+                            "category": q.category,
+                            "type": q.question_type,
+                            "correct_answer": q.answer,
+                            "user_answer": user_answer,
+                            "is_correct": is_correct,
+                            "explanation": q.explanation or ""
+                        })
+        
+        # 准备AI分析数据
+        prompt = f"""
+基于以下测验结果，请为医药代表生成一份简洁的专业评价报告：
+
+**测验信息：**
+- 姓名：{exam_record.user_name}
+- 得分：{exam_record.score}分（满分100分）
+- 正确率：{exam_record.correct_count}/{exam_record.total_questions} = {round(exam_record.correct_count/exam_record.total_questions*100, 1)}%
+- 用时：{exam_record.duration // 60}分{exam_record.duration % 60}秒
+
+**题目解析：**
+{json.dumps(question_analysis, ensure_ascii=False, indent=2)}
+
+请提供：
+1. **简要表现评价**（2-3句话）
+2. **错题专业解析**（针对每道错题，简述知识点和正确理解）
+3. **改进建议**（2-3条具体建议）
+4. **学习重点**（推荐重点学习的知识模块）
+
+要求：
+- 内容简洁实用，总字数控制在500字以内
+- 专业术语准确，重点突出实用性
+- 针对医药代表工作需要提供指导
+        """
+        
+        # 调用AI API
+        provider = api_config.get('provider', 'qwen')
+        url = api_config['url']
+        
+        # 判断是否使用OpenAI兼容格式
+        is_openai_compatible = 'compatible-mode' in url or 'chat/completions' in url or provider != 'qwen'
+        
+        headers = {
+            "Authorization": f"Bearer {api_config['key']}",
+            "Content-Type": "application/json"
+        }
+        
+        if is_openai_compatible:
+            # OpenAI兼容格式
+            payload = {
+                "model": api_config['model'],
+                "messages": [
+                    {"role": "user", "content": prompt}
+                ],
+                "max_tokens": 1000,  # 减少token限制以保持简洁
+                "temperature": 0.3   # 降低温度以提高准确性
+            }
+        else:
+            # 原生Qwen格式
+            payload = {
+                "model": api_config['model'],
+                "input": {
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ]
+                },
+                "parameters": {
+                    "max_tokens": 1000,
+                    "temperature": 0.3
+                }
+            }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                url,
+                headers=headers,
+                json=payload,
+                timeout=30.0
+            )
+        
+        if response.status_code == 200:
+            result = response.json()
+            
+            # 根据不同格式解析响应
+            if is_openai_compatible:
+                # OpenAI兼容格式
+                if 'choices' in result and len(result['choices']) > 0:
+                    ai_report = result['choices'][0]['message']['content']
+                else:
+                    return  # 解析失败就跳过
+            else:
+                # 原生Qwen格式
+                if 'output' in result and 'text' in result['output']:
+                    ai_report = result['output']['text']
+                else:
+                    return  # 解析失败就跳过
+            
+            # 保存AI报告到数据库
+            exam_record.ai_report = ai_report
+            db.commit()
+            
+    except Exception as e:
+        # 自动生成失败不影响主流程，只记录错误但不抛出异常
+        print(f"自动生成AI报告失败: {str(e)}")
+        pass
+
+async def _generate_auto_report_async(record_id: str, old_db: Session):
+    """异步生成AI报告，不阻塞主请求"""
+    try:
+        # 创建新的数据库会话
+        from ..database import SessionLocal
+        db = SessionLocal()
+        
+        try:
+            # 重新获取记录
+            exam_record = db.query(ExamRecordModel).filter(
+                ExamRecordModel.id == record_id
+            ).first()
+            
+            if not exam_record or exam_record.ai_report:
+                return  # 记录不存在或已有报告就跳过
+                
+            # 调用原有的生成逻辑
+            await _generate_auto_report(exam_record, db)
+            
+        finally:
+            db.close()
+        
+    except Exception as e:
+        print(f"异步生成AI报告失败: {str(e)}")
+        pass
+
 @router.get("/exam-records", response_model=List[ExamRecord])
 async def get_exam_records(
     user_name: Optional[str] = None,
@@ -56,6 +256,11 @@ async def save_exam_record(
             db.commit()
             db.refresh(existing)
             
+            # 如果没有AI报告，异步生成（不阻塞响应）
+            if not existing.ai_report:
+                import asyncio
+                asyncio.create_task(_generate_auto_report_async(existing.id, db))
+            
             return {
                 "success": True,
                 "message": "考试记录更新成功",
@@ -63,11 +268,28 @@ async def save_exam_record(
                 "action": "updated"
             }
         else:
-            # 创建新记录
-            db_record = ExamRecordModel(**exam_record.dict())
+            # 创建新记录时，自动填充当前团队和题库信息
+            from ..models import SystemConfig
+            
+            record_data = exam_record.dict()
+            
+            # 如果没有指定team_id和bank_id，使用当前配置
+            if 'team_id' not in record_data or record_data['team_id'] is None:
+                team_config = db.query(SystemConfig).filter(SystemConfig.key == "current_team_id").first()
+                record_data['team_id'] = int(team_config.value) if team_config else 1
+            
+            if 'bank_id' not in record_data or record_data['bank_id'] is None:
+                bank_config = db.query(SystemConfig).filter(SystemConfig.key == "current_bank_id").first()
+                record_data['bank_id'] = int(bank_config.value) if bank_config else 1
+            
+            db_record = ExamRecordModel(**record_data)
             db.add(db_record)
             db.commit()
             db.refresh(db_record)
+            
+            # 异步生成AI报告（不阻塞响应）
+            import asyncio
+            asyncio.create_task(_generate_auto_report_async(db_record.id, db))
             
             return {
                 "success": True,
@@ -155,28 +377,55 @@ async def generate_ai_report(
                 "key": env_api_key
             }
         
+        # 获取具体题目信息进行专业解析
+        from ..models import Question as QuestionModel
+        detailed_answers = json.loads(exam_record.detailed_answers) if isinstance(exam_record.detailed_answers, str) else exam_record.detailed_answers
+        
+        # 获取题目信息
+        question_analysis = []
+        if detailed_answers:
+            question_ids = list(detailed_answers.keys())
+            # 简化版本：假设题目ID对应数据库中的顺序
+            questions = db.query(QuestionModel).limit(len(question_ids)).all()
+            
+            for i, (q_key, user_answer) in enumerate(detailed_answers.items()):
+                if i < len(questions):
+                    q = questions[i]
+                    is_correct = user_answer.upper().strip() == q.answer.upper().strip()
+                    question_analysis.append({
+                        "question": q.question,
+                        "category": q.category,
+                        "type": q.question_type,
+                        "correct_answer": q.answer,
+                        "user_answer": user_answer,
+                        "is_correct": is_correct,
+                        "explanation": q.explanation or ""
+                    })
+        
         # 准备AI分析数据
         exam_data = request.exam_data
         prompt = f"""
-请基于以下考试数据生成一份专业的医药代表知识掌握分析报告：
+基于以下测验结果，请为医药代表生成一份简洁的专业评价报告：
 
-考试信息：
+**测验信息：**
 - 姓名：{exam_record.user_name}
-- 分数：{exam_record.score}分（满分100分）
+- 得分：{exam_record.score}分（满分100分）
 - 正确率：{exam_record.correct_count}/{exam_record.total_questions} = {round(exam_record.correct_count/exam_record.total_questions*100, 1)}%
-- 考试用时：{exam_record.duration // 60}分{exam_record.duration % 60}秒
+- 用时：{exam_record.duration // 60}分{exam_record.duration % 60}秒
 
-答题详情：
-{json.dumps(exam_data, ensure_ascii=False, indent=2)}
+**题目解析：**
+{json.dumps(question_analysis, ensure_ascii=False, indent=2)}
 
-请从以下几个方面进行分析：
-1. 整体表现评估
-2. 知识结构强弱分析
-3. 错题原因分析
-4. 改进建议
-5. 学习重点推荐
+请提供：
+1. **简要表现评价**（2-3句话）
+2. **错题专业解析**（针对每道错题，简述知识点和正确理解）
+3. **改进建议**（2-3条具体建议）
+4. **学习重点**（推荐重点学习的知识模块）
 
-请用专业、客观的语言，为医药代表提供有价值的学习指导。
+要求：
+- 内容简洁实用，总字数控制在500字以内
+- 专业术语准确，重点突出实用性
+- 针对医药代表工作需要提供指导
         """
         
         # 调用AI API

@@ -28,7 +28,8 @@
       "Bash(pkill:*)",
       "Bash(true)",
       "Bash(NO_PROXY=\"*\" curl -s http://localhost:3001/api/exam-records)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(sqlite3:*)"
     ],
     "deny": []
   }

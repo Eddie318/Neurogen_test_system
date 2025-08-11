@@ -13,6 +13,7 @@ router = APIRouter()
 
 @router.get("/questions", response_model=List[Question])
 async def get_questions(
+    bank_id: Optional[int] = Query(None, description="题库ID筛选"),
     category: Optional[str] = Query(None, description="题目分类筛选"),
     question_type: Optional[str] = Query(None, description="题目类型筛选"),
     limit: Optional[int] = Query(None, description="返回数量限制"),
@@ -20,7 +21,17 @@ async def get_questions(
     db: Session = Depends(get_db)
 ):
     """获取题库列表"""
+    from ..models import SystemConfig
+    
     query = db.query(QuestionModel)
+    
+    # 如果没有指定题库ID，使用当前活动题库
+    if bank_id is None:
+        current_bank_config = db.query(SystemConfig).filter(SystemConfig.key == "current_bank_id").first()
+        bank_id = int(current_bank_config.value) if current_bank_config else 1
+    
+    # 按题库筛选
+    query = query.filter(QuestionModel.bank_id == bank_id)
     
     if category:
         query = query.filter(QuestionModel.category == category)
@@ -85,7 +96,16 @@ async def create_question(
     db: Session = Depends(get_db)
 ):
     """创建新题目"""
+    from ..models import SystemConfig
+    
+    # 如果没有指定题库ID，使用当前活动题库
+    bank_id = question.bank_id
+    if bank_id is None:
+        current_bank_config = db.query(SystemConfig).filter(SystemConfig.key == "current_bank_id").first()
+        bank_id = int(current_bank_config.value) if current_bank_config else 1
+    
     db_question = QuestionModel(
+        bank_id=bank_id,
         category=question.category,
         question_type=question.question_type,
         question=question.question,

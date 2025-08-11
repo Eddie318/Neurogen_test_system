@@ -3,11 +3,46 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from .database import Base
 
+class ProductTeam(Base):
+    """产品团队表"""
+    __tablename__ = "product_teams"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False, index=True)
+    code = Column(String(50), unique=True, nullable=False, index=True)
+    description = Column(Text)
+    is_active = Column(Boolean, default=True, index=True)
+    # 预留企业微信字段
+    wechat_dept_id = Column(String(100))
+    wechat_mapping = Column(JSON)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    # 关联关系
+    question_banks = relationship("QuestionBank", back_populates="team")
+
+class QuestionBank(Base):
+    """题库表"""
+    __tablename__ = "question_banks"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    team_id = Column(Integer, ForeignKey("product_teams.id"), nullable=False, index=True)
+    name = Column(String(100), nullable=False, index=True)
+    description = Column(Text)
+    is_active = Column(Boolean, default=True, index=True)
+    created_at = Column(DateTime, server_default=func.now())
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    # 关联关系
+    team = relationship("ProductTeam", back_populates="question_banks")
+    questions = relationship("Question", back_populates="question_bank")
+
 class Question(Base):
     """题库表"""
     __tablename__ = "questions"
     
     id = Column(Integer, primary_key=True, index=True)
+    bank_id = Column(Integer, ForeignKey("question_banks.id"), nullable=False, default=1, index=True)
     category = Column(String(100), nullable=False, index=True)
     question_type = Column(String(20), nullable=False)  # single, multiple
     question = Column(Text, nullable=False)
@@ -20,6 +55,9 @@ class Question(Base):
     question_id = Column(Integer)  # 原题目ID，用于兼容
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
+    
+    # 关联关系
+    question_bank = relationship("QuestionBank", back_populates="questions")
 
 class ExamRecord(Base):
     """考试记录表"""
@@ -28,6 +66,8 @@ class ExamRecord(Base):
     id = Column(String(100), primary_key=True)
     user_name = Column(String(100), nullable=False, index=True)
     user_id = Column(String(100), index=True)  # 企业微信用户ID，暂时可为空
+    team_id = Column(Integer, ForeignKey("product_teams.id"), default=1, index=True)
+    bank_id = Column(Integer, ForeignKey("question_banks.id"), default=1, index=True)
     department = Column(String(100), index=True)
     region = Column(String(100))
     score = Column(Integer, nullable=False, index=True)
@@ -38,6 +78,7 @@ class ExamRecord(Base):
     week_number = Column(Integer, index=True)
     year = Column(Integer, index=True)
     detailed_answers = Column(JSON)  # 详细答题数据
+    questions_data = Column(JSON)  # 完整题目数据（用于AI分析）
     ai_report = Column(Text)  # AI分析报告
     created_at = Column(DateTime, server_default=func.now(), index=True)
 

@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 import os
 from .database import engine, get_db
 from .models import Base
-from .routers import questions, exams, admin, exam_management
+from .routers import questions, exams, admin, exam_management, teams, question_banks
 from .config import settings
 
 # 创建数据库表
@@ -31,6 +31,8 @@ app.include_router(questions.router, prefix="/api", tags=["题库管理"])
 app.include_router(exams.router, prefix="/api", tags=["考试系统"])
 app.include_router(admin.router, prefix="/api", tags=["后台管理"])
 app.include_router(exam_management.router, prefix="/api", tags=["考试管理"])
+app.include_router(teams.router, tags=["团队管理"])
+app.include_router(question_banks.router, tags=["题库管理"])
 
 # 静态文件服务
 static_dir = os.path.join(os.path.dirname(__file__), "..", "static")

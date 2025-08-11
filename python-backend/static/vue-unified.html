@@ -1,0 +1,2335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>穆桥销售测验系统</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f5f7fa; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px; margin-bottom: 30px; }
+        .nav-tabs { display: flex; background: white; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; }
+        .nav-tab { flex: 1; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; color: #718096; font-weight: 500; border-bottom: 3px solid transparent; }
+        .nav-tab:hover { background: #f8f9ff; color: #667eea; }
+        .nav-tab.active { background: #667eea; color: white; border-bottom-color: #5a67d8; }
+        .nav-tab.hidden { display: none; }
+        .card { background: white; border-radius: 10px; padding: 30px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        
+        /* 考试界面样式 */
+        .question { font-size: 18px; line-height: 1.6; margin-bottom: 20px; color: #333; }
+        .options { display: grid; gap: 15px; }
+        .option { padding: 15px 20px; border: 2px solid #e1e8ed; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; background: #fafbfc; }
+        .option:hover { border-color: #667eea; background: #f8f9ff; }
+        .option.selected { border-color: #667eea; background: #667eea; color: white; }
+        .controls { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; }
+        .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; transition: all 0.3s ease; text-decoration: none; display: inline-block; text-align: center; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a67d8; }
+        .btn-success { background: #48bb78; color: white; }
+        .btn-success:hover { background: #38a169; }
+        .btn-secondary { background: #a0aec0; color: white; }
+        .btn-secondary:hover { background: #718096; }
+        .btn-danger { background: #f56565; color: white; }
+        .btn-danger:hover { background: #e53e3e; }
+        .progress-bar { width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-bottom: 20px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); transition: width 0.3s ease; }
+        .timer { font-size: 18px; font-weight: bold; color: #e53e3e; }
+        .result-card { text-align: center; }
+        .loading { text-align: center; padding: 40px; }
+        .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* 管理界面样式 */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; }
+        .stat-value { font-size: 32px; font-weight: bold; color: #4c51bf; margin-bottom: 10px; }
+        .stat-label { color: #718096; font-size: 14px; }
+        .tabs { display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 30px; }
+        .tab { padding: 15px 25px; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s ease; color: #718096; }
+        .tab.active { color: #4c51bf; border-bottom-color: #4c51bf; font-weight: bold; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        .table th { background: #f7fafc; font-weight: bold; color: #4a5568; }
+        .table tr:hover { background: #f7fafc; }
+        .search-box { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; margin-bottom: 20px; font-size: 16px; }
+        .search-box:focus { outline: none; border-color: #4c51bf; }
+        .score-badge { padding: 4px 8px; border-radius: 4px; color: white; font-weight: bold; }
+        .score-excellent { background: #48bb78; }
+        .score-good { background: #ed8936; }
+        .score-poor { background: #f56565; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #4a5568; }
+        .form-input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 16px; }
+        .form-input:focus { outline: none; border-color: #4c51bf; }
+        .form-input.error { border-color: #f56565; }
+        .form-textarea { min-height: 100px; resize: vertical; }
+        .error-message { color: #f56565; font-size: 14px; margin-top: 5px; }
+        
+        /* 题库卡片样式 */
+        .question-banks-list { display: grid; gap: 15px; }
+        .bank-card { 
+            background: white; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 8px; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start;
+            transition: all 0.3s ease;
+        }
+        .bank-card:hover { border-color: #4c51bf; box-shadow: 0 4px 12px rgba(76, 81, 191, 0.15); }
+        .bank-info h4 { margin: 0 0 8px 0; color: #2d3748; font-size: 18px; }
+        .bank-info p { margin: 0 0 12px 0; color: #718096; font-size: 14px; }
+        .bank-stats { display: flex; gap: 20px; flex-wrap: wrap; }
+        .stat-item { color: #4a5568; font-size: 13px; }
+        .bank-actions { display: flex; gap: 8px; }
+        .btn-sm { padding: 8px 16px; font-size: 14px; }
+        
+        /* 题目管理样式 */
+        .questions-list { max-height: 400px; overflow-y: auto; }
+        .question-item { 
+            background: #f8f9fa; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 8px; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+        }
+        .question-header { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+            margin-bottom: 8px; 
+            font-size: 14px; 
+        }
+        .question-number { font-weight: bold; color: #4c51bf; }
+        .question-type { 
+            background: #4c51bf; 
+            color: white; 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+            font-size: 12px; 
+        }
+        .question-category { 
+            background: #48bb78; 
+            color: white; 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+            font-size: 12px; 
+        }
+        .question-content { 
+            font-weight: 500; 
+            margin-bottom: 10px; 
+            color: #2d3748; 
+            line-height: 1.5; 
+        }
+        .question-options { margin-bottom: 10px; }
+        .option { 
+            padding: 5px 10px; 
+            margin: 2px 0; 
+            border-radius: 4px; 
+            font-size: 14px; 
+        }
+        .option.correct { 
+            background: #c6f6d5; 
+            color: #22543d; 
+            font-weight: 500; 
+        }
+        .question-actions { display: flex; justify-content: flex-end; }
+        .no-data { 
+            text-align: center; 
+            padding: 40px; 
+            color: #718096; 
+        }
+        
+        /* 题目管理器标签页 */
+        .mode-tabs { display: flex; gap: 0; border-bottom: 2px solid #e2e8f0; margin-bottom: 0; }
+        .mode-tab { 
+            padding: 10px 20px; 
+            border: none; 
+            background: none; 
+            cursor: pointer; 
+            border-bottom: 3px solid transparent; 
+            color: #718096; 
+            transition: all 0.3s ease;
+        }
+        .mode-tab:hover { color: #4a5568; background: #f7fafc; }
+        .mode-tab.active { 
+            color: #4c51bf; 
+            border-bottom-color: #4c51bf; 
+            background: #f0fff4; 
+        }
+        
+        /* 搜索框 */
+        .search-input { 
+            padding: 8px 12px; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 6px; 
+            font-size: 14px; 
+            width: 250px;
+        }
+        .search-input:focus { outline: none; border-color: #4c51bf; }
+        
+        /* 题目状态样式 */
+        .question-item.already-added { 
+            opacity: 0.7; 
+            background: #f0f0f0; 
+        }
+        .added-badge { 
+            background: #48bb78; 
+            color: white; 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+            font-size: 12px; 
+            margin-left: auto;
+        }
+        
+        /* 每日测验特殊样式 */
+        .mode-selection { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .mode-card { padding: 30px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; text-align: center; background: white; }
+        .mode-card:hover { border-color: #667eea; background: #f8f9ff; }
+        .mode-card.selected { border-color: #667eea; background: #667eea; color: white; }
+        .mode-icon { font-size: 48px; margin-bottom: 15px; }
+        .mode-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .mode-desc { color: #718096; font-size: 14px; }
+        .mode-card.selected .mode-desc { color: rgba(255,255,255,0.8); }
+        
+        .answer-review { margin-top: 30px; }
+        .answer-item { border: 2px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 15px; }
+        .answer-question { font-weight: bold; margin-bottom: 15px; color: #2d3748; }
+        .answer-options { display: grid; gap: 10px; margin-bottom: 15px; }
+        .answer-option { padding: 10px 15px; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .answer-option.correct { background: #c6f6d5; border-color: #48bb78; color: #2f855a; }
+        .answer-option.wrong { background: #fed7d7; border-color: #f56565; color: #c53030; }
+        .answer-option.not-selected { background: #f7fafc; color: #718096; }
+        .answer-explanation { background: #f0fff4; border: 1px solid #9ae6b4; border-radius: 6px; padding: 15px; margin-top: 10px; }
+        .ai-report { background: #f7fafc; border: 2px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-top: 20px; white-space: pre-wrap; line-height: 1.6; }
+        .ai-loading { text-align: center; padding: 20px; color: #718096; }
+        
+        .checkbox, .radio { 
+            width: 20px; 
+            height: 20px; 
+            border: 2px solid #e1e8ed; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 12px; 
+            font-weight: bold;
+            flex-shrink: 0;
+            background: white;
+            color: transparent;
+        }
+        .checkbox { border-radius: 4px; }
+        .radio { border-radius: 50%; }
+        .checkbox.checked, .radio.checked { 
+            background: #667eea; 
+            color: white; 
+            border-color: #667eea; 
+        }
+        .option.selected .checkbox, .option.selected .radio { 
+            background: #667eea; 
+            color: white; 
+            border-color: #667eea; 
+        }
+        
+        .question-type-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+            margin-left: 15px;
+        }
+        .question-type-badge.single-choice {
+            background: #48bb78;
+        }
+        .question-type-badge.multiple-choice {
+            background: #ed8936;
+        }
+        
+        .btn-disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed !important; 
+        }
+        .btn-disabled:hover { 
+            background: #667eea !important; 
+        }
+        
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .header { padding: 20px; }
+            .card { padding: 20px; }
+            .controls { flex-direction: column; gap: 15px; }
+            .btn { width: 100%; }
+            .mode-selection { grid-template-columns: 1fr; }
+            .nav-tabs { flex-direction: column; }
+            .nav-tab { border-bottom: none; border-right: 3px solid transparent; }
+            .nav-tab.active { border-right-color: #5a67d8; border-bottom: none; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .tabs { flex-wrap: wrap; }
+            .table { font-size: 14px; overflow-x: auto; }
+            .modal-content { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- 标题 -->
+            <div class="header">
+                <h1>📅 穆桥销售测验系统</h1>
+                <p>医药代表每日测验平台 - 欢迎 {{ userName }}</p>
+            </div>
+
+            <!-- 主导航标签 -->
+            <div class="nav-tabs">
+                <div class="nav-tab" :class="{ active: currentMainTab === 'exam' }" @click="switchMainTab('exam')">
+                    📝 考试测验
+                </div>
+                <div class="nav-tab" :class="{ active: currentMainTab === 'admin', hidden: !isAdmin }" @click="switchMainTab('admin')" v-show="isAdmin">
+                    📊 管理后台
+                </div>
+            </div>
+
+            <!-- 考试模块 -->
+            <div v-if="currentMainTab === 'exam'">
+                <!-- 每日测验入口 -->
+                <div v-if="currentView === 'daily-home'" class="card">
+                    <div style="text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 72px; margin-bottom: 20px;">📅</div>
+                        <h2 style="color: #4a5568; margin-bottom: 15px;">每日测验</h2>
+                        <p style="color: #718096; margin-bottom: 30px; font-size: 16px;">
+                            每天3道专业题目，10分钟限时答题<br>
+                            开放时间：{{ dailyExamTime }}
+                        </p>
+                        
+                        <div v-if="!isExamTimeActive" style="background: #fed7d7; color: #c53030; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                            ⏰ 当前不在考试时间内，请在 {{ dailyExamTime }} 时间段内参加测验
+                        </div>
+                        
+                        <button 
+                            class="btn btn-success" 
+                            @click="startDailyExam"
+                            :disabled="!isExamTimeActive"
+                            style="font-size: 18px; padding: 15px 40px;"
+                        >
+                            {{ isExamTimeActive ? '🚀 开始今日测验' : '⏰ 等待开放时间' }}
+                        </button>
+                        
+                        <div v-if="todayExamRecord" style="margin-top: 30px; padding: 20px; background: #f0fff4; border-radius: 8px;">
+                            <h4 style="color: #38a169; margin-bottom: 10px;">✅ 今日已完成测验</h4>
+                            <p style="color: #4a5568;">
+                                得分：{{ todayExamRecord.score }}分 | 
+                                用时：{{ formatDuration(todayExamRecord.duration) }} |
+                                答对：{{ todayExamRecord.correctCount }}/{{ todayExamRecord.totalQuestions }}题
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 考试进行中 -->
+                <div v-if="currentView === 'exam-in-progress'" class="card">
+                    <!-- 进度条 -->
+                    <div class="progress-bar">
+                        <div class="progress-fill" :style="{width: progressPercent + '%'}"></div>
+                    </div>
+                    
+                    <!-- 考试信息 -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                        <span>第 {{ currentQuestionIndex + 1 }} / {{ questions.length }} 题</span>
+                        <div class="timer">⏰ {{ formatTime(timeRemaining) }}</div>
+                    </div>
+
+                    <!-- 题目内容 -->
+                    <div v-if="currentQuestion">
+                        <div class="question">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                <strong>{{ currentQuestion.question }}</strong>
+                                <span class="question-type-badge" 
+                                      :class="currentQuestion && currentQuestion.type === 'multiple' ? 'multiple-choice' : 'single-choice'">
+                                    {{ currentQuestion && currentQuestion.type === 'multiple' ? '多选题' : '单选题' }}
+                                </span>
+                            </div>
+                            <div v-if="currentQuestion && currentQuestion.type === 'multiple'" 
+                                 style="color: #718096; font-size: 14px; margin-bottom: 15px;">
+                                请选择所有正确答案
+                            </div>
+                        </div>
+                        
+                        <div class="options">
+                            <!-- 选项A -->
+                            <div v-if="currentQuestion && currentQuestion.optionA"
+                                 class="option"
+                                 :class="{ selected: isOptionSelected('A') }"
+                                 @click="selectAnswer('A')">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div v-if="currentQuestion && currentQuestion.type === 'multiple'" 
+                                         class="checkbox"
+                                         :class="{ checked: isOptionSelected('A') }">
+                                        ✓
+                                    </div>
+                                    <div v-else-if="currentQuestion" 
+                                         class="radio"
+                                         :class="{ checked: isOptionSelected('A') }">
+                                        <span v-if="isOptionSelected('A')" style="font-size: 8px;">●</span>
+                                    </div>
+                                    <div>
+                                        <strong>A.</strong> {{ currentQuestion.optionA }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 选项B -->
+                            <div v-if="currentQuestion && currentQuestion.optionB"
+                                 class="option"
+                                 :class="{ selected: isOptionSelected('B') }"
+                                 @click="selectAnswer('B')">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div v-if="currentQuestion && currentQuestion.type === 'multiple'" 
+                                         class="checkbox"
+                                         :class="{ checked: isOptionSelected('B') }">
+                                        ✓
+                                    </div>
+                                    <div v-else-if="currentQuestion" 
+                                         class="radio"
+                                         :class="{ checked: isOptionSelected('B') }">
+                                        <span v-if="isOptionSelected('B')" style="font-size: 8px;">●</span>
+                                    </div>
+                                    <div>
+                                        <strong>B.</strong> {{ currentQuestion.optionB }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 选项C -->
+                            <div v-if="currentQuestion && currentQuestion.optionC"
+                                 class="option"
+                                 :class="{ selected: isOptionSelected('C') }"
+                                 @click="selectAnswer('C')">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div v-if="currentQuestion && currentQuestion.type === 'multiple'" 
+                                         class="checkbox"
+                                         :class="{ checked: isOptionSelected('C') }">
+                                        ✓
+                                    </div>
+                                    <div v-else-if="currentQuestion" 
+                                         class="radio"
+                                         :class="{ checked: isOptionSelected('C') }">
+                                        <span v-if="isOptionSelected('C')" style="font-size: 8px;">●</span>
+                                    </div>
+                                    <div>
+                                        <strong>C.</strong> {{ currentQuestion.optionC }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 选项D -->
+                            <div v-if="currentQuestion && currentQuestion.optionD"
+                                 class="option"
+                                 :class="{ selected: isOptionSelected('D') }"
+                                 @click="selectAnswer('D')">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div v-if="currentQuestion && currentQuestion.type === 'multiple'" 
+                                         class="checkbox"
+                                         :class="{ checked: isOptionSelected('D') }">
+                                        ✓
+                                    </div>
+                                    <div v-else-if="currentQuestion" 
+                                         class="radio"
+                                         :class="{ checked: isOptionSelected('D') }">
+                                        <span v-if="isOptionSelected('D')" style="font-size: 8px;">●</span>
+                                    </div>
+                                    <div>
+                                        <strong>D.</strong> {{ currentQuestion.optionD }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 控制按钮 -->
+                    <div class="controls">
+                        <button 
+                            class="btn btn-primary" 
+                            @click="previousQuestion"
+                            :disabled="currentQuestionIndex === 0"
+                        >
+                            上一题
+                        </button>
+                        
+                        <span>{{ answeredCount }} / {{ questions.length }} 已答</span>
+                        
+                        <button 
+                            v-if="currentQuestionIndex < questions.length - 1"
+                            class="btn btn-primary" 
+                            @click="nextQuestion"
+                        >
+                            下一题
+                        </button>
+                        
+                        <button 
+                            v-else
+                            class="btn btn-success" 
+                            @click="finishExam"
+                            :disabled="answeredCount === 0"
+                        >
+                            提交测验
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 考试结果 -->
+                <div v-if="currentView === 'exam-result'" class="card result-card">
+                    <h2>🎉 测验完成</h2>
+                    <p style="font-size: 24px; color: #666; margin: 20px 0;">
+                        答对了 {{ examResult.correctCount }}/{{ examResult.totalQuestions }} 题
+                    </p>
+                    
+                    <!-- AI评估报告 -->
+                    <div v-if="aiReport || generatingReport" class="ai-report" style="margin-top: 30px; text-align: left;">
+                        <h3 style="margin-bottom: 15px; text-align: center;">🤖 AI学习评估</h3>
+                        <div v-if="generatingReport" class="ai-loading">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 15px;">AI正在分析你的答题情况，生成个性化学习建议...</p>
+                        </div>
+                        <div v-else>
+                            {{ aiReport }}
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" @click="backToModeSelection">
+                            返回首页
+                        </button>
+                        <button class="btn btn-success" @click="startNewExam">
+                            再次测验
+                        </button>
+                        <button class="btn btn-primary" @click="showAnswerReview">
+                            📝 {{ showAnswers ? '隐藏答案' : '查看答案' }}
+                        </button>
+                    </div>
+
+                    <!-- 答案解析 -->
+                    <div v-if="showAnswers" class="answer-review">
+                        <h3 style="margin-bottom: 20px; text-align: left;">📝 答案解析</h3>
+                        <div v-for="(question, index) in questions" :key="index" class="answer-item">
+                            <div class="answer-question">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                                    <span>{{ index + 1 }}. {{ question.question }}</span>
+                                    <span class="question-type-badge" :class="question.type === 'multiple' ? 'multiple-choice' : 'single-choice'">
+                                        {{ question.type === 'multiple' ? '多选题' : '单选题' }}
+                                    </span>
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <strong style="color: #48bb78;">正确答案：{{ question.answer }}</strong>
+                                    <span style="margin-left: 20px; color: #666;">
+                                        你的答案：{{ userAnswers[index] || '未作答' }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="answer-options">
+                                <!-- 选项A -->
+                                <div v-if="question.optionA" 
+                                     class="answer-option"
+                                     :class="getAnswerOptionClass(question, 'A', userAnswers[index])">
+                                    <strong>A.</strong> {{ question.optionA }}
+                                    <span v-if="(question.answer || '').includes('A')"> ✓ 正确答案</span>
+                                    <span v-if="(userAnswers[index] || '').includes('A') && !(question.answer || '').includes('A')"> ✗ 你的答案</span>
+                                    <span v-if="(userAnswers[index] || '').includes('A') && (question.answer || '').includes('A')"> ✓ 你的正确选择</span>
+                                </div>
+                                
+                                <!-- 选项B -->
+                                <div v-if="question.optionB" 
+                                     class="answer-option"
+                                     :class="getAnswerOptionClass(question, 'B', userAnswers[index])">
+                                    <strong>B.</strong> {{ question.optionB }}
+                                    <span v-if="(question.answer || '').includes('B')"> ✓ 正确答案</span>
+                                    <span v-if="(userAnswers[index] || '').includes('B') && !(question.answer || '').includes('B')"> ✗ 你的答案</span>
+                                    <span v-if="(userAnswers[index] || '').includes('B') && (question.answer || '').includes('B')"> ✓ 你的正确选择</span>
+                                </div>
+                                
+                                <!-- 选项C -->
+                                <div v-if="question.optionC" 
+                                     class="answer-option"
+                                     :class="getAnswerOptionClass(question, 'C', userAnswers[index])">
+                                    <strong>C.</strong> {{ question.optionC }}
+                                    <span v-if="(question.answer || '').includes('C')"> ✓ 正确答案</span>
+                                    <span v-if="(userAnswers[index] || '').includes('C') && !(question.answer || '').includes('C')"> ✗ 你的答案</span>
+                                    <span v-if="(userAnswers[index] || '').includes('C') && (question.answer || '').includes('C')"> ✓ 你的正确选择</span>
+                                </div>
+                                
+                                <!-- 选项D -->
+                                <div v-if="question.optionD" 
+                                     class="answer-option"
+                                     :class="getAnswerOptionClass(question, 'D', userAnswers[index])">
+                                    <strong>D.</strong> {{ question.optionD }}
+                                    <span v-if="(question.answer || '').includes('D')"> ✓ 正确答案</span>
+                                    <span v-if="(userAnswers[index] || '').includes('D') && !(question.answer || '').includes('D')"> ✗ 你的答案</span>
+                                    <span v-if="(userAnswers[index] || '').includes('D') && (question.answer || '').includes('D')"> ✓ 你的正确选择</span>
+                                </div>
+                            </div>
+                            <div v-if="question.explanation" class="answer-explanation">
+                                <strong>💡 解析：</strong>{{ question.explanation }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 管理模块 -->
+            <div v-if="currentMainTab === 'admin' && isAdmin">
+                <!-- 统计卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">{{ stats.totalQuestions }}</div>
+                        <div class="stat-label">题库总数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{ stats.totalExams }}</div>
+                        <div class="stat-label">考试记录</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{ stats.averageScore }}%</div>
+                        <div class="stat-label">平均分数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{ stats.todayExams }}</div>
+                        <div class="stat-label">今日考试</div>
+                    </div>
+                </div>
+
+                <!-- 管理选项卡 -->
+                <div class="card">
+                    <div class="tabs">
+                        <div 
+                            class="tab" 
+                            :class="{ active: activeTab === 'exams' }"
+                            @click="activeTab = 'exams'; loadExamRecords()"
+                        >
+                            📝 考试记录
+                        </div>
+                        <div 
+                            class="tab" 
+                            :class="{ active: activeTab === 'teams' }"
+                            @click="activeTab = 'teams'; loadTeams()"
+                        >
+                            👥 团队管理
+                        </div>
+                        <div 
+                            class="tab" 
+                            :class="{ active: activeTab === 'questions' }"
+                            @click="activeTab = 'questions'; loadQuestions(); loadQuestionBanks()"
+                        >
+                            📚 题库管理
+                        </div>
+                        <div 
+                            class="tab" 
+                            :class="{ active: activeTab === 'config' }"
+                            @click="activeTab = 'config'; loadConfig()"
+                        >
+                            ⚙️ 系统配置
+                        </div>
+                    </div>
+
+                    <!-- 考试记录标签页 -->
+                    <div v-if="activeTab === 'exams'">
+                        <input 
+                            type="text" 
+                            class="search-box" 
+                            placeholder="搜索考生姓名..." 
+                            v-model="examSearch"
+                        >
+                        
+                        <div v-if="loadingExams" class="loading">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 20px;">加载考试记录...</p>
+                        </div>
+                        
+                        <table v-else class="table">
+                            <thead>
+                                <tr>
+                                    <th>考生姓名</th>
+                                    <th>分数</th>
+                                    <th>正确率</th>
+                                    <th>考试时间</th>
+                                    <th>用时</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="exam in filteredExams" :key="exam.id">
+                                    <td>{{ exam.userName || exam.user_name }}</td>
+                                    <td>
+                                        <span 
+                                            class="score-badge"
+                                            :class="getScoreClass(exam.score)"
+                                        >
+                                            {{ exam.score }}分
+                                        </span>
+                                    </td>
+                                    <td>{{ Math.round((exam.correctCount / exam.totalQuestions) * 100) }}%</td>
+                                    <td>{{ formatDate(exam.created_at) }}</td>
+                                    <td>{{ formatDuration(exam.duration) }}</td>
+                                    <td>
+                                        <button class="btn btn-primary" @click="viewExamDetail(exam)">
+                                            查看详情
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 团队管理标签页 -->
+                    <div v-if="activeTab === 'teams'">
+                        <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-success" @click="openCreateTeamModal">
+                                ➕ 创建团队
+                            </button>
+                            <button class="btn btn-primary" @click="loadTeams">
+                                🔄 刷新列表
+                            </button>
+                        </div>
+                        
+                        <div v-if="loadingTeams" class="loading">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 20px;">加载团队列表...</p>
+                        </div>
+                        
+                        <table v-else class="table">
+                            <thead>
+                                <tr>
+                                    <th>团队名称</th>
+                                    <th>团队代码</th>
+                                    <th>描述</th>
+                                    <th>题库数量</th>
+                                    <th>题目数量</th>
+                                    <th>考试记录</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="team in teams" :key="team.id">
+                                    <td>{{ team.name }}</td>
+                                    <td><code>{{ team.code }}</code></td>
+                                    <td>{{ team.description || '-' }}</td>
+                                    <td>{{ team.banks_count }}</td>
+                                    <td>{{ team.questions_count }}</td>
+                                    <td>{{ team.exams_count }}</td>
+                                    <td>
+                                        <button class="btn btn-primary" @click="editTeam(team)" style="margin-right: 5px;">
+                                            编辑
+                                        </button>
+                                        <button v-if="team.id !== 1" class="btn btn-danger" @click="deleteTeam(team.id)">
+                                            删除
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 题库管理标签页 -->
+                    <div v-if="activeTab === 'questions'">
+                        <!-- 当前题库选择 -->
+                        <div style="background: #f0fff4; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                            <h3 style="margin-bottom: 15px; color: #4a5568;">📚 当前题库设置</h3>
+                            <div style="display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 15px; align-items: end;">
+                                <div class="form-group" style="margin: 0;">
+                                    <label>选择团队</label>
+                                    <select class="form-input" v-model="selectedTeamId" @change="loadQuestionBanks">
+                                        <option v-for="team in teams" :key="team.id" :value="team.id">
+                                            {{ team.name }}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin: 0;">
+                                    <label>选择题库</label>
+                                    <select class="form-input" v-model="selectedBankId">
+                                        <option v-for="bank in teamQuestionBanks" :key="bank.id" :value="bank.id">
+                                            {{ bank.name }} ({{ bank.questions_count }}题)
+                                        </option>
+                                    </select>
+                                </div>
+                                <button class="btn btn-success" @click="setCurrentBank" style="height: 48px;">
+                                    ✅ 设为当前题库
+                                </button>
+                            </div>
+                            <div v-if="currentConfig" style="margin-top: 15px; color: #4a5568;">
+                                <strong>当前使用：</strong>{{ currentConfig.team_name }} - {{ currentConfig.bank_name }}
+                            </div>
+                        </div>
+                        
+                        <!-- 题库管理操作 -->
+                        <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-success" @click="openCreateBankModal">
+                                ➕ 创建题库
+                            </button>
+                            <button class="btn btn-success" @click="openAddQuestionModal">
+                                ➕ 添加题目
+                            </button>
+                            <button class="btn btn-primary" @click="refreshQuestions">
+                                🔄 刷新数据
+                            </button>
+                        </div>
+                        
+                        <div v-if="loadingQuestions" class="loading">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 20px;">加载题库统计...</p>
+                        </div>
+                        
+                        <div v-else-if="questionStats">
+                            <!-- 题库统计信息 -->
+                            <div class="stats-grid" style="margin-bottom: 30px;">
+                                <div class="stat-card">
+                                    <div class="stat-value">{{ questionStats.total_questions }}</div>
+                                    <div class="stat-label">题目总数</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">{{ questionStats.statistics.single_choice }}</div>
+                                    <div class="stat-label">单选题</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">{{ questionStats.statistics.multiple_choice }}</div>
+                                    <div class="stat-label">多选题</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-value">{{ questionStats.statistics.categories }}</div>
+                                    <div class="stat-label">分类数量</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 题库列表 -->
+                            <div v-if="teamQuestionBanks.length > 0" style="margin-top: 30px;">
+                                <h3 style="margin-bottom: 15px; color: #4a5568;">📚 题库列表</h3>
+                                <div class="question-banks-list">
+                                    <div v-for="bank in teamQuestionBanks" :key="bank.id" class="bank-card">
+                                        <div class="bank-info">
+                                            <h4>{{ bank.name }}</h4>
+                                            <p v-if="bank.description">{{ bank.description }}</p>
+                                            <div class="bank-stats">
+                                                <span class="stat-item">题目数量: {{ bank.questions_count || 0 }}</span>
+                                                <span class="stat-item">创建时间: {{ formatDate(bank.created_at) }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="bank-actions">
+                                            <button class="btn btn-primary btn-sm" @click="openQuestionManager(bank)">
+                                                📝 题目管理
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" @click="confirmDeleteBank(bank)" 
+                                                    v-if="!isDefaultBank(bank)">
+                                                🗑️ 删除题库
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 系统配置标签页 -->
+                    <div v-if="activeTab === 'config'">
+                        <div v-if="loadingConfig" class="loading">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 20px;">加载配置...</p>
+                        </div>
+                        
+                        <div v-else>
+                            <!-- API配置部分 -->
+                            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+                                <h3 style="margin-bottom: 20px;">🤖 AI配置</h3>
+                                
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label>API提供商</label>
+                                    <select class="form-input" v-model="apiConfig.provider">
+                                        <option value="qwen">通义千问 (Qwen)</option>
+                                        <option value="openai">OpenAI</option>
+                                        <option value="custom">自定义</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label>API地址</label>
+                                    <input 
+                                        type="text" 
+                                        class="form-input" 
+                                        v-model="apiConfig.url" 
+                                        placeholder="https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
+                                    >
+                                </div>
+                                
+                                <div class="form-group" style="margin-bottom: 20px;">
+                                    <label>API密钥</label>
+                                    <input 
+                                        type="password" 
+                                        class="form-input" 
+                                        v-model="apiConfig.key" 
+                                        placeholder="请输入API密钥"
+                                    >
+                                </div>
+                                
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <button 
+                                        class="btn btn-success" 
+                                        @click="saveApiConfig"
+                                        :disabled="savingConfig"
+                                    >
+                                        {{ savingConfig ? '保存中...' : '💾 保存配置' }}
+                                    </button>
+                                    
+                                    <span v-if="connectionStatus" :style="{ color: connectionStatus.success ? '#48bb78' : '#f56565' }">
+                                        {{ connectionStatus.message }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 添加题目弹窗 -->
+        <div v-if="showAddQuestionModal" class="modal" @click="closeAddQuestionModal($event)">
+            <div class="modal-content">
+                <h2>添加新题目</h2>
+                
+                <div class="form-group">
+                    <label>选择题库</label>
+                    <select class="form-input" v-model="questionForm.bank_id" required>
+                        <option value="">请选择题库</option>
+                        <option v-for="bank in teamQuestionBanks" :key="bank.id" :value="bank.id">
+                            {{ bank.team_name }} - {{ bank.name }}
+                        </option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>题目分类</label>
+                    <input type="text" class="form-input" v-model="questionForm.category" placeholder="请输入题目分类">
+                </div>
+                
+                <div class="form-group">
+                    <label>题目类型</label>
+                    <select class="form-input" v-model="questionForm.question_type">
+                        <option value="single">单选题</option>
+                        <option value="multiple">多选题</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>题目内容</label>
+                    <textarea class="form-input form-textarea" v-model="questionForm.question" placeholder="请输入题目内容"></textarea>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label>选项A</label>
+                        <input type="text" class="form-input" v-model="questionForm.option_a" placeholder="选项A内容">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>选项B</label>
+                        <input type="text" class="form-input" v-model="questionForm.option_b" placeholder="选项B内容">
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label>选项C（可选）</label>
+                        <input type="text" class="form-input" v-model="questionForm.option_c" placeholder="选项C内容">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>选项D（可选）</label>
+                        <input type="text" class="form-input" v-model="questionForm.option_d" placeholder="选项D内容">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>正确答案</label>
+                    <input type="text" class="form-input" v-model="questionForm.answer" 
+                           :placeholder="questionForm.question_type === 'single' ? '输入正确答案（如：A）' : '输入正确答案（如：AB 或 ACD）'">
+                </div>
+                
+                <div class="form-group">
+                    <label>答案解析（可选）</label>
+                    <textarea class="form-input form-textarea" v-model="questionForm.explanation" placeholder="请输入答案解析"></textarea>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px;">
+                    <button class="btn btn-primary" @click="closeAddQuestionModal(null)">取消</button>
+                    <button class="btn btn-success" @click="saveQuestion" :disabled="!canSaveQuestion">
+                        添加题目
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 创建团队弹窗 -->
+        <div v-if="showCreateTeamModal" class="modal" @click="closeCreateTeamModal($event)">
+            <div class="modal-content">
+                <h2>{{ isEditTeamMode ? '编辑团队' : '创建新团队' }}</h2>
+                
+                <div class="form-group">
+                    <label>团队名称</label>
+                    <input type="text" class="form-input" v-model="teamForm.name" placeholder="请输入团队名称（如：心血管团队）" 
+                           :class="{ 'error': teamFormErrors.name }" @blur="validateTeamName">
+                    <div v-if="teamFormErrors.name" class="error-message">{{ teamFormErrors.name }}</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>团队代码</label>
+                    <input type="text" class="form-input" v-model="teamForm.code" placeholder="请输入团队代码（如：cardio，respiratory）"
+                           :class="{ 'error': teamFormErrors.code }" @blur="validateTeamCode">
+                    <div v-if="teamFormErrors.code" class="error-message">{{ teamFormErrors.code }}</div>
+                    <small style="color: #718096; font-size: 12px; margin-top: 5px; display: block;">
+                        团队代码用于系统识别，建议使用英文，创建后不建议修改
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label>团队描述</label>
+                    <textarea class="form-input form-textarea" v-model="teamForm.description" placeholder="请输入团队描述"></textarea>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px;">
+                    <button class="btn btn-primary" @click="cancelTeamModal">取消</button>
+                    <button class="btn btn-success" @click="saveTeam">
+                        {{ isEditTeamMode ? '更新团队' : '创建团队' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 创建题库弹窗 -->
+        <div v-if="showCreateBankModal" class="modal" @click="closeCreateBankModal($event)">
+            <div class="modal-content">
+                <h2>创建新题库</h2>
+                
+                <div class="form-group">
+                    <label>所属团队</label>
+                    <select class="form-input" v-model="bankForm.team_id">
+                        <option v-for="team in teams" :key="team.id" :value="team.id">
+                            {{ team.name }}
+                        </option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>题库名称</label>
+                    <input type="text" class="form-input" v-model="bankForm.name" placeholder="请输入题库名称（如：基础知识题库）">
+                </div>
+                
+                <div class="form-group">
+                    <label>题库描述</label>
+                    <textarea class="form-input form-textarea" v-model="bankForm.description" placeholder="请输入题库描述"></textarea>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px;">
+                    <button class="btn btn-primary" @click="closeCreateBankModal(null)">取消</button>
+                    <button class="btn btn-success" @click="saveQuestionBank" :disabled="!canSaveBank">
+                        创建题库
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 题目管理弹窗 -->
+        <div v-if="showQuestionManager" class="modal" @click="closeQuestionManager($event)">
+            <div class="modal-content" style="max-width: 900px;">
+                <h2>📝 题目管理 - {{ currentBank ? currentBank.name : '' }}</h2>
+                
+                <!-- 管理模式切换 -->
+                <div style="margin-bottom: 20px;">
+                    <div class="mode-tabs">
+                        <button class="mode-tab" :class="{ active: questionManagerMode === 'view' }" 
+                                @click="questionManagerMode = 'view'">
+                            📋 查看题目
+                        </button>
+                        <button class="mode-tab" :class="{ active: questionManagerMode === 'add' }" 
+                                @click="switchToAddMode" v-if="!isDefaultBank">
+                            ➕ 从默认题库选择
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 查看题目模式 -->
+                <div v-if="questionManagerMode === 'view'">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div style="color: #4a5568;">
+                            共 {{ bankQuestions.length }} 道题目
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-success btn-sm" @click="addQuestionToBank">
+                                ➕ 添加新题目
+                            </button>
+                            <button class="btn btn-secondary btn-sm" @click="refreshBankQuestions">
+                                🔄 刷新
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 从默认题库选择模式 -->
+                <div v-else-if="questionManagerMode === 'add'">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div style="color: #4a5568;">
+                            从默认题库选择题目添加到 {{ currentBank ? currentBank.name : '' }}
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="text" class="search-input" v-model="questionSearchText" 
+                                   placeholder="搜索题目内容、分类..." @input="searchQuestions">
+                            <button class="btn btn-primary btn-sm" @click="loadDefaultQuestions">
+                                🔄 刷新
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 题目列表 -->
+                <div v-if="loadingBankQuestions || (questionManagerMode === 'add' && loadingDefaultQuestions)" class="loading">
+                    <div class="spinner"></div>
+                    <p>{{ loadingBankQuestions ? '加载题目列表...' : '加载默认题库...' }}</p>
+                </div>
+                
+                <!-- 查看模式 - 显示题库中的题目 -->
+                <div v-else-if="questionManagerMode === 'view'">
+                    <div v-if="bankQuestions.length === 0" class="no-data">
+                        <p>{{ isDefaultBank ? '暂无题目' : '该题库暂无题目' }}</p>
+                        <button class="btn btn-success" @click="addQuestionToBank">
+                            ➕ 立即添加题目
+                        </button>
+                    </div>
+                    
+                    <div v-else class="questions-list">
+                        <div v-for="(question, index) in bankQuestions" :key="question.id" class="question-item">
+                            <div class="question-header">
+                                <span class="question-number">{{ index + 1 }}.</span>
+                                <span class="question-type">{{ getQuestionTypeText(question.question_type) }}</span>
+                                <span class="question-category">{{ question.category }}</span>
+                            </div>
+                            <div class="question-content">{{ question.question }}</div>
+                            <div class="question-options" v-if="question.question_type === 'single' || question.question_type === 'multiple'">
+                                <div class="option" :class="{ 'correct': isCorrectOption(question, 'A') }">
+                                    A. {{ question.option_a }}
+                                </div>
+                                <div class="option" :class="{ 'correct': isCorrectOption(question, 'B') }">
+                                    B. {{ question.option_b }}
+                                </div>
+                                <div class="option" :class="{ 'correct': isCorrectOption(question, 'C') }">
+                                    C. {{ question.option_c }}
+                                </div>
+                                <div class="option" :class="{ 'correct': isCorrectOption(question, 'D') }">
+                                    D. {{ question.option_d }}
+                                </div>
+                            </div>
+                            <div class="question-actions">
+                                <button class="btn btn-danger btn-sm" @click="confirmDeleteQuestion(question)" 
+                                        v-if="!isDefaultBank || question.can_delete">
+                                    🗑️ {{ isDefaultBank ? '删除' : '移除' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 选择模式 - 从默认题库选择题目 -->
+                <div v-else-if="questionManagerMode === 'add'">
+                    <div v-if="filteredDefaultQuestions.length === 0" class="no-data">
+                        <p>{{ questionSearchText ? '没有找到匹配的题目' : '默认题库暂无题目' }}</p>
+                    </div>
+                    
+                    <div v-else class="questions-list">
+                        <div v-for="(question, index) in filteredDefaultQuestions" :key="question.id" 
+                             class="question-item" :class="{ 'already-added': isQuestionInBank(question.id) }">
+                            <div class="question-header">
+                                <span class="question-number">{{ index + 1 }}.</span>
+                                <span class="question-type">{{ getQuestionTypeText(question.question_type) }}</span>
+                                <span class="question-category">{{ question.category }}</span>
+                                <span v-if="isQuestionInBank(question.id)" class="added-badge">已添加</span>
+                            </div>
+                            <div class="question-content">{{ question.question }}</div>
+                            <div class="question-options" v-if="question.question_type === 'single' || question.question_type === 'multiple'">
+                                <div class="option" :class="{ 'correct': isCorrectOption(question, 'A') }">
+                                    A. {{ question.option_a }}
+                                </div>
+                                <div class="option" :class="{ 'correct': isCorrectOption(question, 'B') }">
+                                    B. {{ question.option_b }}
+                                </div>
+                                <div class="option" :class="{ 'correct': isCorrectOption(question, 'C') }">
+                                    C. {{ question.option_c }}
+                                </div>
+                                <div class="option" :class="{ 'correct': isCorrectOption(question, 'D') }">
+                                    D. {{ question.option_d }}
+                                </div>
+                            </div>
+                            <div class="question-actions">
+                                <button class="btn btn-success btn-sm" 
+                                        @click="addQuestionFromDefault(question)"
+                                        :disabled="isQuestionInBank(question.id)">
+                                    {{ isQuestionInBank(question.id) ? '✓ 已添加' : '➕ 添加到题库' }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px;">
+                    <button class="btn btn-primary" @click="closeQuestionManager()">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    // 用户信息和权限
+                    userName: '测试用户',
+                    isAdmin: false,
+                    
+                    // 主导航
+                    currentMainTab: 'exam', // exam, admin
+                    
+                    // 考试相关
+                    currentView: 'daily-home', // daily-home, exam-in-progress, exam-result
+                    selectedMode: 'daily',
+                    dailyExamTime: '08:00 - 20:00',
+                    isExamTimeActive: true,
+                    todayExamRecord: null,
+                    
+                    // 考试数据
+                    questions: [],
+                    currentQuestionIndex: 0,
+                    userAnswers: {},
+                    examStartTime: null,
+                    examDuration: 0,
+                    timeRemaining: 20 * 60,
+                    timer: null,
+                    examResult: null,
+                    
+                    // 答案和AI报告
+                    showAnswers: false,
+                    aiReport: null,
+                    generatingReport: false,
+                    
+                    // 管理界面相关
+                    activeTab: 'exams',
+                    examSearch: '',
+                    loadingExams: false,
+                    loadingQuestions: false,
+                    loadingConfig: false,
+                    examRecords: [],
+                    questionStats: null,
+                    config: {},
+                    
+                    // 团队管理
+                    teams: [],
+                    loadingTeams: false,
+                    showCreateTeamModal: false,
+                    isEditTeamMode: false,
+                    editingTeamId: null,
+                    teamForm: {
+                        name: '',
+                        code: '',
+                        description: '',
+                        is_active: true
+                    },
+                    teamFormErrors: {
+                        name: '',
+                        code: ''
+                    },
+                    
+                    // 题库管理
+                    questionBanks: [],
+                    teamQuestionBanks: [], // 当前团队的题库
+                    loadingBanks: false,
+                    showCreateBankModal: false,
+                    selectedTeamId: 1,
+                    selectedBankId: 1,
+                    currentConfig: null,
+                    bankForm: {
+                        team_id: 1,
+                        name: '',
+                        description: '',
+                        is_active: true
+                    },
+                    
+                    // 题目管理
+                    showAddQuestionModal: false,
+                    questionForm: {
+                        bank_id: null,
+                        category: '',
+                        question_type: 'single',
+                        question: '',
+                        option_a: '',
+                        option_b: '',
+                        option_c: '',
+                        option_d: '',
+                        answer: '',
+                        explanation: ''
+                    },
+                    
+                    // 题目管理器
+                    showQuestionManager: false,
+                    currentBank: null,
+                    bankQuestions: [],
+                    loadingBankQuestions: false,
+                    questionManagerMode: 'view', // 'view' 或 'add'
+                    defaultQuestions: [], // 默认题库中的所有题目
+                    loadingDefaultQuestions: false,
+                    questionSearchText: '',
+                    filteredDefaultQuestions: [],
+                    
+                    // API配置
+                    apiConfig: {
+                        provider: 'qwen',
+                        url: 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation',
+                        model: 'qwen-turbo',
+                        key: ''
+                    },
+                    savingConfig: false,
+                    connectionStatus: null,
+                    
+                    stats: {
+                        totalQuestions: 0,
+                        totalExams: 0,
+                        averageScore: 0,
+                        todayExams: 0
+                    },
+                    
+                    apiBase: '/api'
+                }
+            },
+            computed: {
+                currentQuestion() {
+                    return this.questions[this.currentQuestionIndex];
+                },
+                progressPercent() {
+                    return ((this.currentQuestionIndex + 1) / this.questions.length) * 100;
+                },
+                answeredCount() {
+                    return Object.keys(this.userAnswers).length;
+                },
+                filteredExams() {
+                    if (!this.examSearch) return this.examRecords;
+                    return this.examRecords.filter(exam => 
+                        (exam.userName || exam.user_name || '').toLowerCase()
+                            .includes(this.examSearch.toLowerCase())
+                    );
+                },
+                canSaveQuestion() {
+                    return this.questionForm.category.trim() && 
+                           this.questionForm.question.trim() && 
+                           this.questionForm.option_a.trim() && 
+                           this.questionForm.option_b.trim() && 
+                           this.questionForm.answer.trim();
+                },
+                canSaveTeam() {
+                    return this.teamForm.name.trim() && this.teamForm.code.trim();
+                },
+                canSaveBank() {
+                    return this.bankForm.team_id && this.bankForm.name.trim();
+                }
+            },
+            async mounted() {
+                // 检测用户权限
+                await this.detectUserPermissions();
+                
+                // 初始化
+                await this.initializeDailyExam();
+                
+                // 如果是管理员，加载管理数据
+                if (this.isAdmin) {
+                    await this.loadStats();
+                    await this.loadTeams();
+                    await this.loadQuestions();
+                    await this.loadCurrentConfig();
+                }
+            },
+            methods: {
+                // 权限检测
+                async detectUserPermissions() {
+                    // 简单的权限检测：包含admin的用户名被视为管理员
+                    if (this.userName.toLowerCase().includes('admin') || 
+                        this.userName.toLowerCase().includes('管理员') ||
+                        this.userName === '测试用户') {
+                        this.isAdmin = true;
+                    }
+                },
+                
+                // 主标签切换
+                switchMainTab(tab) {
+                    this.currentMainTab = tab;
+                    if (tab === 'admin' && this.isAdmin) {
+                        this.loadStats();
+                        this.loadExamRecords();
+                    }
+                },
+                
+                // 初始化每日测验
+                async initializeDailyExam() {
+                    try {
+                        // 获取每日考试配置
+                        const configResponse = await axios.get(`${this.apiBase}/daily-exam-config`);
+                        const config = configResponse.data.config;
+                        
+                        this.dailyExamTime = `${config.daily_exam_start_time} - ${config.daily_exam_end_time}`;
+                        this.isExamTimeActive = this.isWithinDailyExamTime(config.daily_exam_start_time, config.daily_exam_end_time);
+                        
+                        // 检查今日是否已完成测验
+                        await this.checkTodayExamRecord();
+                        
+                    } catch (error) {
+                        console.error('初始化每日测验失败:', error);
+                    }
+                },
+                
+                async checkTodayExamRecord() {
+                    try {
+                        const today = new Date().toISOString().split('T')[0];
+                        const response = await axios.get(`${this.apiBase}/exam-records`, {
+                            params: { 
+                                exam_type: 'daily_exam',
+                                date: today
+                            }
+                        });
+                        
+                        // 查找今日记录
+                        const todayRecord = response.data.find(record => {
+                            const recordDate = new Date(record.created_at).toISOString().split('T')[0];
+                            return recordDate === today;
+                        });
+                        
+                        this.todayExamRecord = todayRecord;
+                        
+                    } catch (error) {
+                        console.error('检查今日考试记录失败:', error);
+                    }
+                },
+                
+                backToModeSelection() {
+                    this.currentView = 'daily-home';
+                    this.selectedMode = 'daily';
+                    this.questions = [];
+                    this.currentQuestionIndex = 0;
+                    this.userAnswers = {};
+                    this.examResult = null;
+                    this.showAnswers = false;
+                    this.aiReport = null;
+                    this.generatingReport = false;
+                    this.stopTimer();
+                    
+                    // 重新检查今日考试记录
+                    this.checkTodayExamRecord();
+                },
+                
+                async startDailyExam() {
+                    // 检查每日测验时间
+                    try {
+                        const configResponse = await axios.get(`${this.apiBase}/daily-exam-config`);
+                        const config = configResponse.data.config;
+                        
+                        if (!this.isWithinDailyExamTime(config.daily_exam_start_time, config.daily_exam_end_time)) {
+                            alert(`每日测验时间为 ${config.daily_exam_start_time} - ${config.daily_exam_end_time}，请在开放时间内参加测验`);
+                            return;
+                        }
+                        
+                        this.selectedMode = 'daily';
+                        const response = await axios.get(`${this.apiBase}/questions`, {
+                            params: { 
+                                limit: config.daily_exam_question_count || 3, 
+                                random_sample: true 
+                            }
+                        });
+                        this.questions = response.data;
+                        this.timeRemaining = (config.daily_exam_duration_minutes || 10) * 60; // 10分钟限时
+                        this.startExamSession();
+                    } catch (error) {
+                        alert('加载练习题目失败: ' + error.message);
+                    }
+                },
+                
+                isWithinDailyExamTime(startTime, endTime) {
+                    const now = new Date();
+                    const currentTime = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                    
+                    const start = startTime.replace(':', '');
+                    const end = endTime.replace(':', '');
+                    const current = currentTime.replace(':', '');
+                    
+                    return current >= start && current <= end;
+                },
+                
+                startExamSession() {
+                    this.currentView = 'exam-in-progress';
+                    this.currentQuestionIndex = 0;
+                    this.userAnswers = {};
+                    this.examStartTime = Date.now();
+                    this.showAnswers = false;
+                    this.aiReport = null;
+                    this.startTimer();
+                },
+                
+                // 考试控制
+                selectAnswer(option) {
+                    const questionIndex = this.currentQuestionIndex;
+                    const question = this.questions[questionIndex];
+                    
+                    if (question.type === 'multiple') {
+                        // 多选题逻辑
+                        let currentAnswers = this.userAnswers[questionIndex] || '';
+                        
+                        if (currentAnswers.includes(option)) {
+                            // 取消选择
+                            currentAnswers = currentAnswers.replace(option, '');
+                        } else {
+                            // 添加选择，按字母顺序排序
+                            currentAnswers += option;
+                            currentAnswers = currentAnswers.split('').sort().join('');
+                        }
+                        
+                        this.userAnswers[questionIndex] = currentAnswers;
+                    } else {
+                        // 单选题逻辑
+                        this.userAnswers[questionIndex] = option;
+                    }
+                },
+                
+                isOptionSelected(option) {
+                    try {
+                        const questionIndex = this.currentQuestionIndex;
+                        const userAnswer = this.userAnswers[questionIndex] || '';
+                        const question = this.questions[questionIndex];
+                        
+                        if (question && question.type === 'multiple') {
+                            return userAnswer.includes(option);
+                        } else {
+                            return userAnswer === option;
+                        }
+                    } catch (error) {
+                        console.error('isOptionSelected error:', error);
+                        return false;
+                    }
+                },
+                
+                nextQuestion() {
+                    if (this.currentQuestionIndex < this.questions.length - 1) {
+                        this.currentQuestionIndex++;
+                    }
+                },
+                
+                previousQuestion() {
+                    if (this.currentQuestionIndex > 0) {
+                        this.currentQuestionIndex--;
+                    }
+                },
+                
+                async finishExam() {
+                    if (this.answeredCount === 0) {
+                        alert('请至少回答一道题目');
+                        return;
+                    }
+
+                    this.stopTimer();
+                    this.examDuration = Math.floor((Date.now() - this.examStartTime) / 1000);
+                    
+                    // 计算成绩
+                    let correctCount = 0;
+                    for (let i = 0; i < this.questions.length; i++) {
+                        const userAnswer = this.userAnswers[i];
+                        const correctAnswer = this.questions[i].answer;
+                        if (userAnswer === correctAnswer) {
+                            correctCount++;
+                        }
+                    }
+
+                    const score = Math.round((correctCount / this.questions.length) * 100);
+                    
+                    this.examResult = {
+                        score: score,
+                        correctCount: correctCount,
+                        totalQuestions: this.questions.length
+                    };
+
+                    // 提交考试记录
+                    try {
+                        await this.submitExamRecord();
+                    } catch (error) {
+                        console.error('提交考试记录失败:', error);
+                    }
+
+                    this.currentView = 'exam-result';
+                },
+                
+                async submitExamRecord() {
+                    const recordId = `${this.selectedMode}_${Date.now()}`;
+                    
+                    // 构建完整的题目信息，包含用户答案
+                    const questionsWithAnswers = this.questions.map((question, index) => ({
+                        question: question.question,
+                        optionA: question.optionA,
+                        optionB: question.optionB,
+                        optionC: question.optionC,
+                        optionD: question.optionD,
+                        correct_answer: question.answer,
+                        user_answer: this.userAnswers[index] || '',
+                        question_type: question.type,
+                        category: question.category,
+                        explanation: question.explanation || '',
+                        is_correct: (this.userAnswers[index] || '').toUpperCase() === question.answer.toUpperCase()
+                    }));
+                    
+                    const examData = {
+                        id: recordId,
+                        userName: this.userName,
+                        score: this.examResult.score,
+                        correctCount: this.examResult.correctCount,
+                        totalQuestions: this.examResult.totalQuestions,
+                        duration: this.examDuration,
+                        exam_type: this.selectedMode === 'daily' ? 'daily_exam' : 'practice',
+                        detailed_answers: this.userAnswers,
+                        questions_data: questionsWithAnswers
+                    };
+
+                    // 开始生成AI报告
+                    this.generatingReport = true;
+                    
+                    await axios.post(`${this.apiBase}/exam-records`, examData);
+                    
+                    // 等待AI报告生成完成（异步轮询）
+                    this.waitForAIReport(recordId);
+                },
+                
+                startNewExam() {
+                    this.currentView = 'daily-home';
+                    this.selectedMode = 'daily';
+                    this.questions = [];
+                    this.currentQuestionIndex = 0;
+                    this.userAnswers = {};
+                    this.examResult = null;
+                    this.showAnswers = false;
+                    this.aiReport = null;
+                    this.generatingReport = false;
+                    this.timeRemaining = 10 * 60;
+                    this.stopTimer();
+                    
+                    // 重新检查今日考试记录
+                    this.checkTodayExamRecord();
+                },
+                
+                // 题目管理方法
+                openQuestionManager(bank) {
+                    this.currentBank = bank;
+                    this.showQuestionManager = true;
+                    this.questionManagerMode = 'view';
+                    this.questionSearchText = '';
+                    this.filteredDefaultQuestions = [];
+                    this.loadBankQuestions(bank.id);
+                },
+                
+                closeQuestionManager(event) {
+                    if (event && event.target && !event.target.classList.contains('modal')) {
+                        return;
+                    }
+                    this.showQuestionManager = false;
+                    this.currentBank = null;
+                    this.bankQuestions = [];
+                    this.questionManagerMode = 'view';
+                    this.questionSearchText = '';
+                    this.filteredDefaultQuestions = [];
+                    this.defaultQuestions = [];
+                },
+                
+                switchToAddMode() {
+                    this.questionManagerMode = 'add';
+                    this.loadDefaultQuestions();
+                },
+                
+                async loadBankQuestions(bankId) {
+                    this.loadingBankQuestions = true;
+                    try {
+                        const response = await axios.get(`${this.apiBase}/question-banks/${bankId}/questions`);
+                        this.bankQuestions = response.data;
+                    } catch (error) {
+                        console.error('加载题库题目失败:', error);
+                        alert('加载题库题目失败');
+                    } finally {
+                        this.loadingBankQuestions = false;
+                    }
+                },
+                
+                refreshBankQuestions() {
+                    if (this.currentBank) {
+                        this.loadBankQuestions(this.currentBank.id);
+                    }
+                },
+                
+                async loadDefaultQuestions() {
+                    this.loadingDefaultQuestions = true;
+                    try {
+                        // 获取默认题库（所有master-questions）
+                        const response = await axios.get(`${this.apiBase}/master-questions`);
+                        this.defaultQuestions = response.data;
+                        this.filteredDefaultQuestions = response.data;
+                        this.searchQuestions(); // 应用搜索过滤
+                    } catch (error) {
+                        console.error('加载默认题库失败:', error);
+                        alert('加载默认题库失败');
+                    } finally {
+                        this.loadingDefaultQuestions = false;
+                    }
+                },
+                
+                searchQuestions() {
+                    if (!this.questionSearchText.trim()) {
+                        this.filteredDefaultQuestions = this.defaultQuestions;
+                        return;
+                    }
+                    
+                    const searchText = this.questionSearchText.toLowerCase();
+                    this.filteredDefaultQuestions = this.defaultQuestions.filter(question => 
+                        question.question.toLowerCase().includes(searchText) ||
+                        question.category.toLowerCase().includes(searchText) ||
+                        question.option_a?.toLowerCase().includes(searchText) ||
+                        question.option_b?.toLowerCase().includes(searchText) ||
+                        question.option_c?.toLowerCase().includes(searchText) ||
+                        question.option_d?.toLowerCase().includes(searchText)
+                    );
+                },
+                
+                isQuestionInBank(questionId) {
+                    return this.bankQuestions.some(q => q.id === questionId);
+                },
+                
+                async addQuestionFromDefault(question) {
+                    try {
+                        // 将题目添加到当前题库
+                        await axios.post(`${this.apiBase}/question-banks/${this.currentBank.id}/questions`, {
+                            question_id: question.id
+                        });
+                        
+                        alert('题目添加成功！');
+                        this.refreshBankQuestions(); // 刷新当前题库
+                        this.loadQuestionBanks(); // 刷新题库列表
+                        
+                    } catch (error) {
+                        alert('添加题目失败: ' + (error.response?.data?.detail || error.message));
+                        console.error(error);
+                    }
+                },
+                
+                addQuestionToBank() {
+                    // 设置题目表单的目标题库
+                    this.questionForm.bank_id = this.currentBank.id;
+                    this.resetQuestionForm();
+                    this.showQuestionManager = false; // 先关闭题目管理器
+                    this.showAddQuestionModal = true; // 打开添加题目表单
+                },
+                
+                confirmDeleteQuestion(question) {
+                    if (confirm(`确定要删除题目"${question.question}"吗？`)) {
+                        this.deleteQuestion(question);
+                    }
+                },
+                
+                async deleteQuestion(question) {
+                    try {
+                        await axios.delete(`${this.apiBase}/questions/${question.id}`);
+                        alert('题目删除成功！');
+                        this.refreshBankQuestions();
+                        this.loadQuestionBanks(); // 刷新题库列表以更新题目数量
+                    } catch (error) {
+                        alert('删除题目失败: ' + (error.response?.data?.detail || error.message));
+                        console.error(error);
+                    }
+                },
+                
+                getQuestionTypeText(type) {
+                    switch(type) {
+                        case 'single': return '单选题';
+                        case 'multiple': return '多选题';
+                        case 'true_false': return '判断题';
+                        default: return type;
+                    }
+                },
+                
+                isCorrectOption(question, option) {
+                    return question.answer && question.answer.includes(option);
+                },
+                
+                formatDate(dateString) {
+                    if (!dateString) return '';
+                    return new Date(dateString).toLocaleDateString('zh-CN');
+                },
+
+                // 工具方法
+                startTimer() {
+                    if (this.selectedMode === 'daily' && this.timeRemaining > 0) {
+                        this.timer = setInterval(() => {
+                            this.timeRemaining--;
+                            if (this.timeRemaining <= 0) {
+                                this.finishExam();
+                            }
+                        }, 1000);
+                    }
+                },
+                
+                stopTimer() {
+                    if (this.timer) {
+                        clearInterval(this.timer);
+                        this.timer = null;
+                    }
+                },
+                
+                formatTime(seconds) {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                },
+                
+                // 答案解析相关
+                showAnswerReview() {
+                    this.showAnswers = !this.showAnswers;
+                },
+                
+                getAnswerOptionClass(question, option, userAnswer) {
+                    const correctAnswer = question.answer || '';
+                    const isCorrect = correctAnswer.includes(option);
+                    const isUserSelected = (userAnswer || '').includes(option);
+                    
+                    if (isCorrect && isUserSelected) {
+                        return 'correct'; // 正确答案且用户选择了
+                    } else if (isCorrect && !isUserSelected) {
+                        return 'correct'; // 正确答案但用户未选择
+                    } else if (!isCorrect && isUserSelected) {
+                        return 'wrong'; // 错误答案但用户选择了
+                    } else {
+                        return 'not-selected'; // 未选择
+                    }
+                },
+                
+                // 等待AI报告生成完成
+                async waitForAIReport(recordId) {
+                    try {
+                        let attempts = 0;
+                        const maxAttempts = 30; // 最多等待30次，每次2秒，总共60秒
+                        
+                        const checkReport = async () => {
+                            try {
+                                const response = await axios.get(`${this.apiBase}/exam-records/${recordId}`);
+                                
+                                if (response.data.ai_report) {
+                                    this.aiReport = response.data.ai_report;
+                                    this.generatingReport = false;
+                                    return true;
+                                }
+                                
+                                attempts++;
+                                if (attempts >= maxAttempts) {
+                                    console.log('AI报告生成超时');
+                                    this.generatingReport = false;
+                                    return false;
+                                }
+                                
+                                // 2秒后再次检查
+                                setTimeout(checkReport, 2000);
+                                return false;
+                                
+                            } catch (error) {
+                                console.error('检查AI报告状态失败:', error);
+                                this.generatingReport = false;
+                                return false;
+                            }
+                        };
+                        
+                        // 开始检查
+                        checkReport();
+                        
+                    } catch (error) {
+                        console.error('等待AI报告失败:', error);
+                        this.generatingReport = false;
+                    }
+                },
+                
+                // 管理界面方法
+                async loadStats() {
+                    try {
+                        // 获取题库统计
+                        const questionsRes = await axios.get(`${this.apiBase}/master-questions`);
+                        this.stats.totalQuestions = questionsRes.data.totalQuestions;
+                        
+                        // 获取考试记录统计
+                        const examsRes = await axios.get(`${this.apiBase}/exam-records`);
+                        const exams = examsRes.data;
+                        this.stats.totalExams = exams.length;
+                        
+                        if (exams.length > 0) {
+                            const totalScore = exams.reduce((sum, exam) => sum + exam.score, 0);
+                            this.stats.averageScore = Math.round(totalScore / exams.length);
+                            
+                            // 计算今日考试数
+                            const today = new Date().toDateString();
+                            this.stats.todayExams = exams.filter(exam => 
+                                new Date(exam.created_at).toDateString() === today
+                            ).length;
+                        }
+                    } catch (error) {
+                        console.error('加载统计信息失败:', error);
+                    }
+                },
+                
+                async loadExamRecords() {
+                    this.loadingExams = true;
+                    try {
+                        const response = await axios.get(`${this.apiBase}/exam-records`);
+                        this.examRecords = response.data;
+                    } catch (error) {
+                        alert('加载考试记录失败: ' + error.message);
+                    } finally {
+                        this.loadingExams = false;
+                    }
+                },
+                
+                async loadQuestions() {
+                    this.loadingQuestions = true;
+                    try {
+                        const response = await axios.get(`${this.apiBase}/questions/stats`);
+                        this.questionStats = response.data;
+                    } catch (error) {
+                        alert('加载题库统计失败: ' + error.message);
+                    } finally {
+                        this.loadingQuestions = false;
+                    }
+                },
+                
+                async loadConfig() {
+                    this.loadingConfig = true;
+                    try {
+                        const response = await axios.get(`${this.apiBase}/master-config`);
+                        this.config = response.data;
+                        
+                        // 如果已有配置，加载到表单中
+                        if (this.config.apiConfig) {
+                            this.apiConfig = {
+                                provider: this.config.apiConfig.provider || 'qwen',
+                                url: this.config.apiConfig.url || 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation',
+                                model: this.config.apiConfig.model || 'qwen-turbo',
+                                key: this.config.apiConfig.key || ''
+                            };
+                        }
+                    } catch (error) {
+                        alert('加载配置失败: ' + error.message);
+                    } finally {
+                        this.loadingConfig = false;
+                    }
+                },
+                
+                async refreshQuestions() {
+                    await this.loadQuestions();
+                    await this.loadStats();
+                    alert('题库已刷新');
+                },
+                
+                // 题库管理方法
+                async openAddQuestionModal() {
+                    this.resetQuestionForm();
+                    // 确保加载所有题库供选择
+                    await this.loadAllQuestionBanks();
+                    this.showAddQuestionModal = true;
+                },
+                
+                resetQuestionForm() {
+                    this.questionForm = {
+                        bank_id: this.questionForm.bank_id || null, // 保持已设置的题库ID或清空
+                        category: '',
+                        question_type: 'single',
+                        question: '',
+                        option_a: '',
+                        option_b: '',
+                        option_c: '',
+                        option_d: '',
+                        answer: '',
+                        explanation: ''
+                    };
+                },
+                
+                closeAddQuestionModal(event) {
+                    if (event && event.target && !event.target.classList.contains('modal')) {
+                        return;
+                    }
+                    this.showAddQuestionModal = false;
+                    this.resetQuestionForm();
+                },
+                
+                async saveQuestion() {
+                    if (!this.canSaveQuestion) {
+                        alert('请填写完整的题目信息');
+                        return;
+                    }
+                    
+                    try {
+                        // 添加题目到master-questions（默认题库）
+                        const response = await axios.post(`${this.apiBase}/master-questions`, this.questionForm);
+                        
+                        // 如果指定了特定题库，也添加到该题库
+                        if (this.questionForm.bank_id) {
+                            try {
+                                await axios.post(`${this.apiBase}/question-banks/${this.questionForm.bank_id}/questions`, {
+                                    question_id: response.data.id
+                                });
+                            } catch (error) {
+                                console.error('添加到题库失败:', error);
+                            }
+                        }
+                        
+                        alert('题目添加成功！题目已自动添加到默认题库。');
+                        this.closeAddQuestionModal();
+                        this.loadQuestions();
+                        this.loadStats();
+                        this.loadQuestionBanks(); // 更新题库列表
+                        
+                        // 如果题目管理器是打开的，更新题目列表
+                        if (this.showQuestionManager && this.currentBank && this.currentBank.id === this.questionForm.bank_id) {
+                            this.refreshBankQuestions();
+                        }
+                        
+                        // 如果正在查看默认题库，刷新默认题库列表
+                        if (this.questionManagerMode === 'add') {
+                            this.loadDefaultQuestions();
+                        }
+                        
+                    } catch (error) {
+                        alert('添加题目失败: ' + error.message);
+                        console.error(error);
+                    }
+                },
+                
+                viewExamDetail(exam) {
+                    alert(`考试详情：\n姓名: ${exam.userName || exam.user_name}\n分数: ${exam.score}分\n用时: ${this.formatDuration(exam.duration)}`);
+                },
+                
+                getScoreClass(score) {
+                    if (score >= 90) return 'score-excellent';
+                    if (score >= 70) return 'score-good';
+                    return 'score-poor';
+                },
+                
+                formatDate(dateString) {
+                    if (!dateString) return '-';
+                    return new Date(dateString).toLocaleString('zh-CN');
+                },
+                
+                formatDuration(seconds) {
+                    if (!seconds) return '-';
+                    const mins = Math.floor(seconds / 60);
+                    const secs = seconds % 60;
+                    return `${mins}分${secs}秒`;
+                },
+                
+                // 团队管理方法
+                async loadTeams() {
+                    this.loadingTeams = true;
+                    try {
+                        const response = await axios.get(`${this.apiBase}/teams`);
+                        this.teams = response.data;
+                        
+                        // 如果没有选中的团队，选择第一个
+                        if (this.teams.length > 0 && !this.selectedTeamId) {
+                            this.selectedTeamId = this.teams[0].id;
+                        }
+                    } catch (error) {
+                        alert('加载团队列表失败: ' + error.message);
+                    } finally {
+                        this.loadingTeams = false;
+                    }
+                },
+                
+                openCreateTeamModal() {
+                    this.isEditTeamMode = false;
+                    this.editingTeamId = null;
+                    this.resetTeamForm();
+                    this.showCreateTeamModal = true;
+                },
+                
+                editTeam(team) {
+                    this.isEditTeamMode = true;
+                    this.editingTeamId = team.id;
+                    this.teamForm = {
+                        name: team.name,
+                        code: team.code,
+                        description: team.description || '',
+                        is_active: team.is_active
+                    };
+                    this.showCreateTeamModal = true;
+                },
+                
+                resetTeamForm() {
+                    this.teamForm = {
+                        name: '',
+                        code: '',
+                        description: '',
+                        is_active: true
+                    };
+                    this.teamFormErrors = {
+                        name: '',
+                        code: ''
+                    };
+                },
+                
+                validateTeamName() {
+                    if (!this.teamForm.name.trim()) {
+                        this.teamFormErrors.name = '请输入团队名称';
+                        return false;
+                    } else {
+                        this.teamFormErrors.name = '';
+                        return true;
+                    }
+                },
+                
+                validateTeamCode() {
+                    if (!this.teamForm.code.trim()) {
+                        this.teamFormErrors.code = '请输入团队代码';
+                        return false;
+                    } else {
+                        this.teamFormErrors.code = '';
+                        return true;
+                    }
+                },
+                
+                validateTeamForm() {
+                    const nameValid = this.validateTeamName();
+                    const codeValid = this.validateTeamCode();
+                    return nameValid && codeValid;
+                },
+                
+                closeCreateTeamModal(event) {
+                    // 如果是点击模态框内容区域，不关闭
+                    if (event && event.target && !event.target.classList.contains('modal')) {
+                        return;
+                    }
+                    // 如果是按钮点击或点击模态框背景，关闭模态框
+                    this.showCreateTeamModal = false;
+                    this.resetTeamForm();
+                },
+                
+                cancelTeamModal() {
+                    this.showCreateTeamModal = false;
+                    this.resetTeamForm();
+                },
+                
+                async saveTeam() {
+                    if (!this.validateTeamForm()) {
+                        return;
+                    }
+                    
+                    try {
+                        if (this.isEditTeamMode) {
+                            await axios.put(`${this.apiBase}/teams/${this.editingTeamId}`, this.teamForm);
+                            alert('团队更新成功！');
+                        } else {
+                            await axios.post(`${this.apiBase}/teams`, this.teamForm);
+                            alert('团队创建成功！');
+                        }
+                        
+                        this.closeCreateTeamModal();
+                        this.loadTeams();
+                        this.loadStats();
+                        
+                    } catch (error) {
+                        alert(`${this.isEditTeamMode ? '更新' : '创建'}团队失败: ` + error.response?.data?.detail || error.message);
+                        console.error(error);
+                    }
+                },
+                
+                async deleteTeam(teamId) {
+                    if (!confirm('确定要删除这个团队吗？删除后无法恢复！')) {
+                        return;
+                    }
+                    
+                    try {
+                        await axios.delete(`${this.apiBase}/teams/${teamId}`);
+                        alert('团队删除成功！');
+                        this.loadTeams();
+                        this.loadStats();
+                    } catch (error) {
+                        alert('删除团队失败: ' + (error.response?.data?.detail || error.message));
+                    }
+                },
+                
+                confirmDeleteBank(bank) {
+                    if (confirm(`确定要删除题库"${bank.name}"吗？删除后无法恢复！`)) {
+                        this.deleteQuestionBank(bank);
+                    }
+                },
+                
+                async deleteQuestionBank(bank) {
+                    try {
+                        await axios.delete(`${this.apiBase}/question-banks/${bank.id}`);
+                        alert('题库删除成功！');
+                        this.loadQuestionBanks();
+                        this.loadTeams(); // 刷新团队统计
+                        
+                    } catch (error) {
+                        alert('删除题库失败: ' + (error.response?.data?.detail || error.message));
+                        console.error(error);
+                    }
+                },
+                
+                // 题库管理方法
+                async loadQuestionBanks() {
+                    try {
+                        const response = await axios.get(`${this.apiBase}/question-banks?team_id=${this.selectedTeamId}`);
+                        this.teamQuestionBanks = response.data;
+                        
+                        // 如果没有选中的题库，选择第一个
+                        if (this.teamQuestionBanks.length > 0 && !this.selectedBankId) {
+                            this.selectedBankId = this.teamQuestionBanks[0].id;
+                        }
+                    } catch (error) {
+                        console.error('加载题库列表失败:', error);
+                    }
+                },
+                
+                async loadAllQuestionBanks() {
+                    try {
+                        const response = await axios.get(`${this.apiBase}/question-banks`);
+                        this.teamQuestionBanks = response.data;
+                    } catch (error) {
+                        console.error('加载所有题库失败:', error);
+                    }
+                },
+                
+                async loadCurrentConfig() {
+                    try {
+                        const response = await axios.get(`${this.apiBase}/current-config`);
+                        this.currentConfig = response.data;
+                        
+                        // 更新选择的团队和题库
+                        this.selectedTeamId = response.data.current_team_id;
+                        this.selectedBankId = response.data.current_bank_id;
+                    } catch (error) {
+                        console.error('加载当前配置失败:', error);
+                    }
+                },
+                
+                async setCurrentBank() {
+                    if (!this.selectedTeamId || !this.selectedBankId) {
+                        alert('请选择团队和题库');
+                        return;
+                    }
+                    
+                    try {
+                        const response = await axios.post(`${this.apiBase}/set-current-bank?team_id=${this.selectedTeamId}&bank_id=${this.selectedBankId}`);
+                        
+                        alert('当前题库设置成功！');
+                        await this.loadCurrentConfig();
+                        
+                    } catch (error) {
+                        alert('设置当前题库失败: ' + (error.response?.data?.detail || error.message));
+                    }
+                },
+                
+                openCreateBankModal() {
+                    this.resetBankForm();
+                    this.showCreateBankModal = true;
+                },
+                
+                resetBankForm() {
+                    this.bankForm = {
+                        team_id: this.selectedTeamId || 1,
+                        name: '',
+                        description: '',
+                        is_active: true
+                    };
+                },
+                
+                closeCreateBankModal(event) {
+                    if (event && event.target && !event.target.classList.contains('modal')) {
+                        return;
+                    }
+                    this.showCreateBankModal = false;
+                    this.resetBankForm();
+                },
+                
+                async saveQuestionBank() {
+                    if (!this.canSaveBank) {
+                        alert('请填写完整的题库信息');
+                        return;
+                    }
+                    
+                    try {
+                        await axios.post(`${this.apiBase}/question-banks`, this.bankForm);
+                        alert('题库创建成功！');
+                        
+                        this.closeCreateBankModal();
+                        this.loadQuestionBanks();
+                        this.loadTeams(); // 更新团队统计
+                        
+                    } catch (error) {
+                        alert('创建题库失败: ' + (error.response?.data?.detail || error.message));
+                        console.error(error);
+                    }
+                },
+                
+                // API配置相关方法
+                async saveApiConfig() {
+                    this.savingConfig = true;
+                    this.connectionStatus = null;
+                    
+                    try {
+                        const configData = {
+                            provider: this.apiConfig.provider,
+                            url: this.apiConfig.url,
+                            model: this.apiConfig.model,
+                            key: this.apiConfig.key,
+                            enabled: true
+                        };
+                        
+                        const response = await axios.post(`${this.apiBase}/api-config`, configData);
+                        
+                        if (response.data.success) {
+                            this.connectionStatus = {
+                                success: true,
+                                message: '✅ API配置保存成功！'
+                            };
+                            await this.loadConfig(); // 重新加载配置
+                            await this.loadStats(); // 更新统计
+                        } else {
+                            this.connectionStatus = {
+                                success: false,
+                                message: '❌ API配置保存失败: ' + response.data.message
+                            };
+                        }
+                        
+                    } catch (error) {
+                        this.connectionStatus = {
+                            success: false,
+                            message: '❌ 保存配置失败: ' + error.message
+                        };
+                        console.error(error);
+                    } finally {
+                        this.savingConfig = false;
+                    }
+                },
+                
+                isDefaultBank(bank = null) {
+                    const targetBank = bank || this.currentBank;
+                    return targetBank && (targetBank.name === '默认题库' || targetBank.is_default || targetBank.id === 1);
+                }
+            },
+            beforeUnmount() {
+                this.stopTimer();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

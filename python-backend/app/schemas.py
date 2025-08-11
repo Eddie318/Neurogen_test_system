@@ -4,6 +4,7 @@ from datetime import datetime
 
 # 题库相关模式
 class QuestionBase(BaseModel):
+    bank_id: Optional[int] = None
     category: str
     question_type: str = Field(alias="type")
     question: str
@@ -38,6 +39,23 @@ class Question(QuestionBase):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
+# 题目数据模式（用于AI分析）
+class QuestionData(BaseModel):
+    question: str
+    optionA: str = Field(alias="optionA")
+    optionB: str = Field(alias="optionB")
+    optionC: Optional[str] = Field(alias="optionC", default=None)
+    optionD: Optional[str] = Field(alias="optionD", default=None)
+    correct_answer: str
+    user_answer: str
+    question_type: str
+    category: str
+    explanation: Optional[str] = None
+    is_correct: bool
+
+    class Config:
+        allow_population_by_field_name = True
+
 # 考试记录相关模式
 class ExamRecordBase(BaseModel):
     user_name: str = Field(alias="userName")
@@ -60,6 +78,7 @@ class ExamRecordBase(BaseModel):
 
 class ExamRecordCreate(ExamRecordBase):
     id: str
+    questions_data: Optional[List[QuestionData]] = None  # 新增：完整题目数据
 
 class ExamRecord(ExamRecordBase):
     id: str

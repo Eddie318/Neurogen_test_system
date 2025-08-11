@@ -325,10 +325,21 @@
             <!-- 考试结果 -->
             <div v-if="currentView === 'exam-result'" class="card result-card">
                 <h2>🎉 {{ selectedMode === 'formal' ? '考试完成' : '练习完成' }}</h2>
-                <div class="score">{{ examResult.score }}分</div>
-                <p>正确率: {{ Math.round(examResult.score) }}%</p>
-                <p>答对 {{ examResult.correctCount }} / {{ examResult.totalQuestions }} 题</p>
-                <p v-if="selectedMode === 'formal'">用时: {{ formatTime(examDuration) }}</p>
+                <p style="font-size: 24px; color: #666; margin: 20px 0;">
+                    答对了 {{ examResult.correctCount }}/{{ examResult.totalQuestions }} 题
+                </p>
+                
+                <!-- AI评估报告 -->
+                <div v-if="aiReport || generatingReport" class="ai-report" style="margin-top: 30px; text-align: left;">
+                    <h3 style="margin-bottom: 15px; text-align: center;">🤖 AI学习评估</h3>
+                    <div v-if="generatingReport" class="ai-loading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 15px;">AI正在分析你的答题情况，生成个性化学习建议...</p>
+                    </div>
+                    <div v-else>
+                        {{ aiReport }}
+                    </div>
+                </div>
                 
                 <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
                     <button class="btn btn-primary" @click="backToModeSelection">
@@ -339,12 +350,6 @@
                     </button>
                     <button class="btn btn-primary" @click="showAnswerReview">
                         📝 {{ showAnswers ? '隐藏答案' : '查看答案' }}
-                    </button>
-                    <button class="btn btn-primary" 
-                            @click="generateAIReport" 
-                            :disabled="generatingReport || aiReport"
-                            :class="{ 'btn-disabled': generatingReport || aiReport }">
-                        🤖 {{ aiReport ? '已生成报告' : generatingReport ? '生成中...' : 'AI报告' }}
                     </button>
                 </div>
 
@@ -415,19 +420,6 @@
 
             </div>
             
-            <!-- AI报告 - 独立显示区域 -->
-            <div v-if="aiReport || generatingReport" class="card result-card">
-                <div class="ai-report">
-                    <h3 style="margin-bottom: 15px;">🤖 AI学习报告</h3>
-                    <div v-if="generatingReport" class="ai-loading">
-                        <div class="spinner"></div>
-                        <p style="margin-top: 15px;">AI正在分析你的答题情况，生成个性化学习报告...</p>
-                    </div>
-                    <div v-else>
-                        {{ aiReport }}
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -687,6 +679,22 @@
                 
                 async submitExamRecord() {
                     const recordId = `${this.selectedMode}_${Date.now()}`;
+                    
+                    // 构建完整的题目信息，包含用户答案
+                    const questionsWithAnswers = this.questions.map((question, index) => ({
+                        question: question.question,
+                        optionA: question.optionA,
+                        optionB: question.optionB,
+                        optionC: question.optionC,
+                        optionD: question.optionD,
+                        correct_answer: question.answer,
+                        user_answer: this.userAnswers[index] || '',
+                        question_type: question.type,
+                        category: question.category,
+                        explanation: question.explanation || '',
+                        is_correct: (this.userAnswers[index] || '').toUpperCase() === question.answer.toUpperCase()
+                    }));
+                    
                     const examData = {
                         id: recordId,
                         userName: '测试用户',
@@ -695,10 +703,17 @@
                         totalQuestions: this.examResult.totalQuestions,
                         duration: this.examDuration,
                         exam_type: this.selectedMode === 'formal' ? 'formal_exam' : this.selectedMode === 'daily' ? 'daily_exam' : 'practice',
-                        detailed_answers: this.userAnswers
+                        detailed_answers: this.userAnswers,
+                        questions_data: questionsWithAnswers  // 新增：完整题目信息
                     };
 
+                    // 开始生成AI报告
+                    this.generatingReport = true;
+                    
                     await axios.post(`${this.apiBase}/exam-records`, examData);
+                    
+                    // 等待AI报告生成完成（异步轮询）
+                    this.waitForAIReport(recordId);
                 },
                 
                 startNewExam() {
@@ -783,57 +798,45 @@
                     }
                 },
                 
-                // AI报告生成
-                async generateAIReport() {
-                    this.generatingReport = true;
+                // 等待AI报告生成完成
+                async waitForAIReport(recordId) {
                     try {
-                        // 先保存考试记录
-                        const recordId = `practice_${Date.now()}`;
-                        const examRecordData = {
-                            userName: '测试用户',
-                            score: this.examResult.score,
-                            correctCount: this.examResult.correctCount,
-                            totalQuestions: this.examResult.totalQuestions,
-                            duration: this.examDuration,
-                            exam_type: 'practice',
-                            detailed_answers: this.userAnswers
+                        let attempts = 0;
+                        const maxAttempts = 30; // 最多等待30次，每次2秒，总共60秒
+                        
+                        const checkReport = async () => {
+                            try {
+                                const response = await axios.get(`${this.apiBase}/exam-records/${recordId}`);
+                                
+                                if (response.data.ai_report) {
+                                    this.aiReport = response.data.ai_report;
+                                    this.generatingReport = false;
+                                    return true;
+                                }
+                                
+                                attempts++;
+                                if (attempts >= maxAttempts) {
+                                    console.log('AI报告生成超时');
+                                    this.generatingReport = false;
+                                    return false;
+                                }
+                                
+                                // 2秒后再次检查
+                                setTimeout(checkReport, 2000);
+                                return false;
+                                
+                            } catch (error) {
+                                console.error('检查AI报告状态失败:', error);
+                                this.generatingReport = false;
+                                return false;
+                            }
                         };
                         
-                        // 保存记录（不管成功失败都继续生成报告）
-                        try {
-                            await axios.post(`${this.apiBase}/exam-records`, {
-                                id: recordId,
-                                ...examRecordData
-                            });
-                        } catch (recordError) {
-                            console.log('保存记录失败，但继续生成报告:', recordError);
-                        }
-                        
-                        // 构建考试数据用于AI分析
-                        const examData = {
-                            questions: this.questions,
-                            userAnswers: this.userAnswers,
-                            score: this.examResult.score,
-                            correctCount: this.examResult.correctCount,
-                            totalQuestions: this.examResult.totalQuestions,
-                            examType: 'practice'
-                        };
-                        
-                        const response = await axios.post(`${this.apiBase}/generate-ai-report`, {
-                            exam_record_id: recordId,
-                            exam_data: examData
-                        });
-                        
-                        if (response.data.success) {
-                            this.aiReport = response.data.report;
-                        } else {
-                            alert('AI报告生成失败: ' + (response.data.error || '未知错误'));
-                        }
+                        // 开始检查
+                        checkReport();
                         
                     } catch (error) {
-                        console.error('生成AI报告失败:', error);
-                        alert('AI报告生成失败，请检查API配置');
-                    } finally {
+                        console.error('等待AI报告失败:', error);
                         this.generatingReport = false;
                     }
                 }
